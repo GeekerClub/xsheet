@@ -5,3 +5,13 @@ cc_library(
         '//toft/base/string:string'
     ]
 )
+
+cc_test(
+    name = 'key_coding_test',
+    srcs = 'key_coding_test.cc',
+    deps = [
+        ':key_coding',
+        '//toft/base/string:string',
+        '//thirdparty/gtest:gtest'
+    ]
+)
