@@ -1,10 +1,8 @@
-// Copyright (c) 2015, Baidu.com, Inc. All Rights Reserved
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright (C) 2018, For authors
+// Author: An Qin (anqin.qin@gmail.com)
 //
-// Copyright (c) 2011 The xsheet Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file. See the AUTHORS file for names of contributors.
+// Description:
+
 
 #include "engine/key_coding.h"
 
