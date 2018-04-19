@@ -22,9 +22,9 @@ public:
                                const std::string& qualifier,
                                int64_t timestamp,
                                RawKeyType type,
-                               std::string* tera_key) const = 0;
+                               std::string* raw_key) const = 0;
 
-    virtual bool ExtractRawKey(const toft::StringPiece& tera_key,
+    virtual bool ExtractRawKey(const toft::StringPiece& raw_key,
                                 toft::StringPiece* row_key,
                                 toft::StringPiece* family,
                                 toft::StringPiece* qualifier,

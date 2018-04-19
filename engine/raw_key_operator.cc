@@ -7,20 +7,20 @@
 namespace xsheet {
 
 
-static inline void AppendTsAndType(std::string* tera_key,
+static inline void AppendTsAndType(std::string* raw_key,
                                    int64_t timestamp,
                                    RawKeyType type) {
     timestamp &= 0x00FFFFFFFFFFFFFF;
     uint64_t n = ((1UL << 56) - 1 - timestamp) << 8 | (type & 0xFF);
     char str[8];
     EncodeBigEndian(str, n);
-    tera_key->append(str, 8);
+    raw_key->append(str, 8);
 }
 
-static inline void ExtractTsAndType(const toft::StringPiece& tera_key,
+static inline void ExtractTsAndType(const toft::StringPiece& raw_key,
                                     int64_t* timestamp,
                                     RawKeyType* type) {
-    uint64_t n = DecodeBigEndain(tera_key.data() + tera_key.size() - sizeof(uint64_t));
+    uint64_t n = DecodeBigEndain(raw_key.data() + raw_key.size() - sizeof(uint64_t));
     if (type) {
         *type = static_cast<RawKeyType>((n << 56) >> 56);
     }
@@ -29,7 +29,7 @@ static inline void ExtractTsAndType(const toft::StringPiece& tera_key,
     }
 }
 
-static inline void AppendRowQualifierLength(std::string* tera_key,
+static inline void AppendRowQualifierLength(std::string* raw_key,
                                             const std::string& row_key,
                                             const std::string& qualifier) {
     uint32_t rlen = row_key.size();
@@ -37,7 +37,7 @@ static inline void AppendRowQualifierLength(std::string* tera_key,
     uint32_t n = (rlen<<16) | qlen;
     char str[4];
     EncodeBigEndian32(str, n);
-    tera_key->append(str, 4);
+    raw_key->append(str, 4);
 }
 
 
@@ -53,29 +53,29 @@ public:
                                const std::string& qualifier,
                                int64_t timestamp,
                                RawKeyType type,
-                               std::string* tera_key) const {
-        *tera_key = row_key;
-        tera_key->push_back('\0');
-        tera_key->append(family);
-        tera_key->push_back('\0');
-        tera_key->append(qualifier);
-        tera_key->push_back('\0');
-        AppendTsAndType(tera_key, timestamp, type);
+                               std::string* raw_key) const {
+        *raw_key = row_key;
+        raw_key->push_back('\0');
+        raw_key->append(family);
+        raw_key->push_back('\0');
+        raw_key->append(qualifier);
+        raw_key->push_back('\0');
+        AppendTsAndType(raw_key, timestamp, type);
     }
 
-    virtual bool ExtractRawKey(const toft::StringPiece& tera_key,
+    virtual bool ExtractRawKey(const toft::StringPiece& raw_key,
                                 toft::StringPiece* row_key,
                                 toft::StringPiece* family,
                                 toft::StringPiece* qualifier,
                                 int64_t* timestamp,
                                 RawKeyType* type) const {
-        int key_len = strlen(tera_key.data());
+        int key_len = strlen(raw_key.data());
         if (row_key) {
-            *row_key = toft::StringPiece(tera_key.data(), key_len);
+            *row_key = toft::StringPiece(raw_key.data(), key_len);
         }
 
-        int family_len = strlen(tera_key.data() + key_len + 1);
-        toft::StringPiece family_data(tera_key.data() + key_len + 1, family_len);
+        int family_len = strlen(raw_key.data() + key_len + 1);
+        toft::StringPiece family_data(raw_key.data() + key_len + 1, family_len);
         if (family) {
             *family = family_data;
         }
@@ -85,10 +85,10 @@ public:
             *qualifier = toft::StringPiece(family_data.data() + family_len + 1, qualifier_len);
         }
 
-        if (key_len + family_len + qualifier_len + 3 + sizeof(uint64_t) != tera_key.size()) {
+        if (key_len + family_len + qualifier_len + 3 + sizeof(uint64_t) != raw_key.size()) {
             return false;
         }
-        ExtractTsAndType(tera_key, timestamp, type);
+        ExtractTsAndType(raw_key, timestamp, type);
         return true;
     }
 
@@ -97,7 +97,7 @@ public:
     }
 
     const char* Name() const {
-        return "tera.RawKeyOperator.readable";
+        return "raw.RawKeyOperator.readable";
     }
 };
 
@@ -113,13 +113,13 @@ public:
                                const std::string& qualifier,
                                int64_t timestamp,
                                RawKeyType type,
-                               std::string* tera_key) const {
+                               std::string* raw_key) const {
         uint32_t rlen = row_key.size();
         uint32_t flen = family.size();
         uint32_t qlen = qualifier.size();
 
-        tera_key->resize(rlen + flen + qlen + 13);
-        char* key = (char*)(tera_key->data());
+        raw_key->resize(rlen + flen + qlen + 13);
+        char* key = (char*)(raw_key->data());
 
         // fill rowkey segment
         memcpy(key, row_key.data(), rlen);
@@ -144,26 +144,26 @@ public:
         EncodeBigEndian32(key + pos, m);
     }
 
-    virtual bool ExtractRawKey(const toft::StringPiece& tera_key,
+    virtual bool ExtractRawKey(const toft::StringPiece& raw_key,
                                 toft::StringPiece* row_key,
                                 toft::StringPiece* family,
                                 toft::StringPiece* qualifier,
                                 int64_t* timestamp,
                                 RawKeyType* type) const {
-        uint32_t len = DecodeBigEndain32(tera_key.data() + tera_key.size() - sizeof(uint32_t));
+        uint32_t len = DecodeBigEndain32(raw_key.data() + raw_key.size() - sizeof(uint32_t));
         int key_len = static_cast<int>(len >> 16);
-        int family_len = strlen(tera_key.data() + key_len);
+        int family_len = strlen(raw_key.data() + key_len);
         int qualifier_len = static_cast<int>(len & 0xFFFF);
 
         if (key_len + family_len + qualifier_len + 1 +
-            sizeof(uint64_t) + sizeof(uint32_t) != tera_key.size()) {
+            sizeof(uint64_t) + sizeof(uint32_t) != raw_key.size()) {
             return false;
         }
 
         if (row_key) {
-            *row_key = toft::StringPiece(tera_key.data(), key_len);
+            *row_key = toft::StringPiece(raw_key.data(), key_len);
         }
-        toft::StringPiece family_data(tera_key.data() + key_len, family_len);
+        toft::StringPiece family_data(raw_key.data() + key_len, family_len);
         if (family) {
             *family = family_data;
         }
@@ -171,8 +171,8 @@ public:
             *qualifier = toft::StringPiece(family_data.data() + family_len + 1, qualifier_len);
         }
 
-        toft::StringPiece internal_tera_key = toft::StringPiece(tera_key.data(), tera_key.size() - sizeof(uint32_t));
-        ExtractTsAndType(internal_tera_key, timestamp, type);
+        toft::StringPiece internal_raw_key = toft::StringPiece(raw_key.data(), raw_key.size() - sizeof(uint32_t));
+        ExtractTsAndType(internal_raw_key, timestamp, type);
         return true;
     }
 
@@ -227,7 +227,7 @@ public:
     }
 
     const char* Name() const {
-        return "tera.RawKeyOperator.binary";
+        return "raw.RawKeyOperator.binary";
     }
 };
 
@@ -241,23 +241,23 @@ public:
                                const std::string& qualifier,
                                int64_t timestamp, // must >= 0
                                RawKeyType type,
-                               std::string* tera_key) const {
+                               std::string* raw_key) const {
         char expire_timestamp[8];
         EncodeBigEndian(expire_timestamp, timestamp);
-        tera_key->assign(row_key).append(expire_timestamp, 8);
+        raw_key->assign(row_key).append(expire_timestamp, 8);
     }
 
-    virtual bool ExtractRawKey(const toft::StringPiece& tera_key,
+    virtual bool ExtractRawKey(const toft::StringPiece& raw_key,
                                 toft::StringPiece* row_key,
                                 toft::StringPiece* family,
                                 toft::StringPiece* qualifier,
                                 int64_t* timestamp,
                                 RawKeyType* type) const {
         if (row_key) {
-            *row_key = toft::StringPiece(tera_key.data(), tera_key.size() - sizeof(int64_t));
+            *row_key = toft::StringPiece(raw_key.data(), raw_key.size() - sizeof(int64_t));
         }
         if (timestamp) {
-            *timestamp = DecodeBigEndain(tera_key.data() + tera_key.size() - sizeof(int64_t));
+            *timestamp = DecodeBigEndain(raw_key.data() + raw_key.size() - sizeof(int64_t));
         }
         return true;
     }
@@ -270,7 +270,7 @@ public:
     }
 
     const char* Name() const {
-        return "tera.RawKeyOperator.kv";
+        return "raw.RawKeyOperator.kv";
     }
 };
 
