@@ -47,14 +47,26 @@ public:
     virtual StatusCode Write(const WriteOptions& options, WriteBatch* updates) = 0;
     virtual StatusCode Delete(const WriteOptions& options, const toft::StringPiece& key) = 0;
 
+public:
+    static KvBase* Open(const std::string& db_path, const BaseOptions& options);
+    static bool Exists(const std::string& db_path);
+    static  bool Delete(const std::string& db_path);
+    static int64_t GetSize(const std::string& db_path);
+
+private:
+    static BaseSystem* GetBaseSystemByPath(const std::string& db_path);
+
+protected:
+    std::string m_db_path;
+    BaseOptions m_options;
 };
 
 class BaseSystem {
 public:
     BaseSystem() {}
-    ~BaseSystem() {}
+    virtual ~BaseSystem() {}
 
-    virtual kvBase* Open(const std::string& db_path, const BaseOptions& options) = 0;
+    virtual KvBase* Open(const std::string& db_path, const BaseOptions& options) = 0;
     virtual bool Exists(const std::string& db_path) = 0;
     virtual bool Delete(const std::string& db_path) = 0;
     virtual int64_t GetSize(const std::string& db_path) = 0;
