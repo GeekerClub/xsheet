@@ -1,3 +1,8 @@
+// Copyright (C) 2018, For authors.
+// Author: An Qin (anqin.qin@gmail.com)
+//
+// Description:
+
 #ifndef XSHEET_ENGINE_KEY_CODING_H
 #define XSHEET_ENGINE_KEY_CODING_H
 
