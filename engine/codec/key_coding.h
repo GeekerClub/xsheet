@@ -3,8 +3,8 @@
 //
 // Description:
 
-#ifndef XSHEET_ENGINE_KEY_CODING_H
-#define XSHEET_ENGINE_KEY_CODING_H
+#ifndef XSHEET_ENGINE_CODEC_KEY_CODING_H
+#define XSHEET_ENGINE_CODEC_KEY_CODING_H
 
 
 #include <endian.h>
@@ -118,4 +118,4 @@ inline uint64_t DecodeBigEndain(const char* ptr) {
 
 }  // namespace xsheet
 
-#endif  // XSHEET_ENGINE_KEY_CODING_H
+#endif  // XSHEET_ENGINE_CODEC_KEY_CODING_H

@@ -8,8 +8,8 @@
 
 #include "thirdparty/gtest/gtest.h"
 
-#include "engine/raw_key.h"
-#include "engine/raw_key_operator.h"
+#include "engine/codec//raw_key.h"
+#include "engine/codec//raw_key_operator.h"
 
 
 namespace xsheet {

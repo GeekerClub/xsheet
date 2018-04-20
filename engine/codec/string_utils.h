@@ -3,8 +3,8 @@
 //
 // Description:
 
-#ifndef XSHEET_ENGINE_STRING_UTILS_H
-#define XSHEET_ENGINE_STRING_UTILS_H
+#ifndef XSHEET_ENGINE_CODEC_STRING_UTILS_H
+#define XSHEET_ENGINE_CODEC_STRING_UTILS_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -67,4 +67,4 @@ uint64_t StringToUint64(const std::string& int_str, int base = 10);
 
 }  // namespace xsheet
 
-#endif  // XSHEET_ENGINE_STRING_UTILS_H
+#endif  // XSHEET_ENGINE_CODEC_STRING_UTILS_H
