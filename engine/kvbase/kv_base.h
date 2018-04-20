@@ -1,11 +1,11 @@
-// Copyright (C) 2018, For authors.
+// Copyright (C) 2018, For GeekerClub authors.
 // Author: An Qin (anqin.qin@gmail.com)
 //
 // Description:
 
 
-#ifndef XSHEET_ENGINE_KVBASE_BASE_SYSTEM_H
-#define XSHEET_ENGINE_KVBASE_BASE_SYSTEM_H
+#ifndef XSHEET_ENGINE_KVBASE_KV_BASE_H
+#define XSHEET_ENGINE_KVBASE_KV_BASE_H
 
 #include "toft/base/string/string_piece.h"
 #include "toft/base/class_registry.h"
@@ -78,4 +78,4 @@ TOFT_CLASS_REGISTRY_DEFINE_SINGLETON(base_system, BaseSystem);
 // Get database systems name by index
 #define TOFT_BASE_SYSTEM_NAME(i) TOFT_CLASS_REGISTRY_CLASS_NAME(base_system, i)
 
-#endif // XSHEET_ENGINE_KVBASE_BASE_SYSTEM_H
+#endif // XSHEET_ENGINE_KVBASE_KV_BASE_H
