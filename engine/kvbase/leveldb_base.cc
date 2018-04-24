@@ -60,19 +60,33 @@ StatusCode LevelIterator::Status() const {
 // KvBase
 
 LevelBase::LevelBase(leveldb::DB* db, leveldb::Options options, const std::string& db_path)
-    : db_(db), options_(options), db_path_(db_path_) {}
+    : db_(db), options_(options), db_path_(db_path_) {
+    CHECK(db_);
+}
 
 
 LevelBase::~LevelBase() {}
 
 StatusCode LevelBase::Put(const WriteOptions& options,
                           const toft::StringPiece& key, const toft::StringPiece& value) {
-    leveldb::Status ldb_status = db_->Put();
+    leveldb::Status ldb_status = db_->Put(leveldb::WriteOptions(), key.as_string(), value.as_string());
+    StatusCode status_code = kBaseOk;
+    if (!ldb_status.ok()) {
+        LOG(ERROR) << "fail to put kv pair";
+        status_code = kBaseIOError;
+    }
+    return status_code;
 }
 
 StatusCode LevelBase::Get(const ReadOptions& options,
                           const toft::StringPiece& key, std::string* value) {
-
+    leveldb::Status ldb_status = db_->Get(leveldb::ReadOptions(), key.as_string(), value);
+    StatusCode status_code = kBaseOk;
+    if (!ldb_status.ok()) {
+        LOG(ERROR) << "fail to get kv pair";
+        status_code = kBaseIOError;
+    }
+    return status_code;
 }
 
 
@@ -81,7 +95,13 @@ KvIterator* LevelBase::NewIterator(const ReadOptions& options) {
 }
 
 StatusCode LevelBase::Write(const WriteOptions& options, WriteBatch* updates) {
-
+    leveldb::Status ldb_status = db_->Write(leveldb::WriteOptions(), updates);
+    StatusCode status_code = kBaseOk;
+    if (!ldb_status.ok()) {
+        LOG(ERROR) << "fail to put kv pair";
+        status_code = kBaseIOError;
+    }
+    return status_code;
 }
 
 StatusCode LevelBase::Delete(const WriteOptions& options, const toft::StringPiece& key) {
