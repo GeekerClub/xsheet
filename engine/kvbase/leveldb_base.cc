@@ -5,7 +5,13 @@
 
 #include "engine/kvbase/leveldb_base.h"
 
+#include "thirdparty/gflags/gflags.h"
+#include "thirdparty/glog/logging.h"
+#include "thirdparty/leveldb/status.h"
+
 #include "engine/kvbase/kv_base.h"
+
+DECLARE_string(xsheet_leveldb_env_type);
 
 namespace xsheet {
 
@@ -53,7 +59,9 @@ StatusCode LevelIterator::Status() const {
 
 // KvBase
 
-LevelBase::LevelBase() {}
+LevelBase::LevelBase(leveldb::DB* db, leveldb::Options options, const std::string& db_path)
+    : db_(db), options_(options), db_path_(db_path_) {}
+
 
 LevelBase::~LevelBase() {}
 
@@ -82,21 +90,46 @@ StatusCode LevelBase::Delete(const WriteOptions& options, const toft::StringPiec
 
 // BaseSystem
 
+LevelSystem::LevelSystem()
+    : ldb_env_(NULL) {}
 
 LevelBase* LevelSystem::Open(const std::string& db_path, const BaseOptions& options) {
+    db_path_ = db_path;
+    base_options_ = base_options;
 
+    leveldb::DB* ldb = NULL;
+    leveldb::Options ldb_options;
+    SetupOptions(base_options, &ldb_options);
+    leveldb::Status ldb_status = leveldb::DB::Open(ldb_options, db_path, &ldb);
+    if (!ldb_status.ok()) {
+        LOG(FATAL) << "fail to create leveldb on: " << db_path_;
+        return NULL;
+    }
+
+    return new LevelBase(ldb, ldb_options, db_path_);
 }
 
 bool LevelSystem::Exists(const std::string& db_path) {
-
+    return ldb_env_->FileExists(db_path);
 }
 
 bool LevelSystem::Delete(const std::string& db_path) {
-
+    return false;
 }
 
 int64_t LevelSystem::GetSize(const std::string& db_path) {
+    return false;
+}
 
+void LevelSystem::SetupOptions(const BaseOptions& base_options, leveldb::Options* ldb_options) {
+
+    if (FLAGS_xsheet_leveldb_env_type == "local") {
+        ldb_env_ = leveldb::Env::Default();
+    } else {
+        ldb_env_ = leveldb::Env::Default();
+    }
+    CHEKC(ldb_env_) << ", leveldb env pointer should not be null";
+    ldb_options->env = ldb_env_;
 }
 
 } // namespace xsheet
