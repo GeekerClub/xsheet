@@ -67,7 +67,7 @@ LevelBase::~LevelBase() {}
 
 StatusCode LevelBase::Put(const WriteOptions& options,
                           const toft::StringPiece& key, const toft::StringPiece& value) {
-
+    leveldb::Status ldb_status = db_->Put();
 }
 
 StatusCode LevelBase::Get(const ReadOptions& options,
