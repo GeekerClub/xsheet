@@ -1,0 +1,38 @@
+import "proto/status_code.proto";
+
+package xsheet
+
+enum MutationType {
+    kPut = 0;
+    kDeleteColumn = 1;
+    kDeleteColumns = 2;
+    kDeleteFamily = 3;
+    kDeleteRow = 4;
+    kAdd = 5;
+    kPutIfAbsent = 6;
+    kAppend = 7;
+    kAddInt64 = 8;
+}
+
+// Put           : family, qualifier, timestamp, value
+// DeleteColumn  : family, qualifier, timestamp
+// DeleteColumns : family, qualifier, ts_start, ts_end
+// DeleteFamily  : family, ts_start, ts_end
+// DeleteRow     : ts_start, ts_end
+message Mutation {
+    required MutationType type = 1;
+    optional string family = 2;
+    optional bytes qualifier = 3;
+    optional int64 timestamp = 4;
+    optional bytes value = 5;
+    optional int64 ts_start = 6;
+    optional int64 ts_end = 7;
+    optional int32 ttl = 8 [default = -1]; // -1: will not timeout
+}
+
+message RowMutationSequence {
+    required bytes row_key = 1;
+    repeated Mutation mutation_sequence = 2;
+    optional SingleRowTxnReadInfo txn_read_info = 3;
+}
+
