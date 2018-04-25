@@ -24,9 +24,9 @@ BaseSystem* KvBase::GetBaseSystemByPath(const std::string& db_path) {
     return TOFT_GET_BASE_SYSTEM("local");
 }
 
-Base* KvBase::Open(const std::string& db_path, const char* mode) {
+KvBase* KvBase::Open(const std::string& db_path, const BaseOptions& options) {
     BaseSystem* fs = GetBaseSystemByPath(db_path);
-    return fs->Open(db_path, mode);
+    return fs->Open(db_path, options);
 }
 
 bool KvBase::Exists(const std::string& db_path) {

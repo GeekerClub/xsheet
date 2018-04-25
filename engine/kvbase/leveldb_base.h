@@ -9,9 +9,12 @@
 
 #include "thirdparty/leveldb/db.h"
 #include "thirdparty/leveldb/env.h"
+#include "thirdparty/leveldb/iterator.h"
+#include "thirdparty/leveldb/options.h"
 #include "toft/base/string/string_piece.h"
 #include "toft/base/uncopyable.h"
 
+#include "engine/kvbase/kv_base.h"
 #include "engine/kvbase/base_options.h"
 #include "proto/status_code.pb.h"
 
@@ -19,6 +22,7 @@ namespace xsheet {
 
 class LevelIterator : public KvIterator {
 public:
+    LevelIterator(leveldb::Iterator* ldb_iter);
     virtual ~LevelIterator();
 
     virtual bool Valid() const;
@@ -32,12 +36,16 @@ public:
     virtual toft::StringPiece Value() const;
 
     virtual StatusCode Status() const;
+
+private:
+    leveldb::Iterator* ldb_iter_;
 };
 
 class LevelBase : public KvBase {
 public:
-    LevelBase(leveldb::DB* db, leveldb::Options options, const std::string& db_path);
-    virtual ~LevelBase() {}
+    LevelBase(leveldb::DB* db, leveldb::Options ldb_options,
+              const BaseOptions& base_options, const std::string& db_path);
+    virtual ~LevelBase();
 
     virtual StatusCode Put(const WriteOptions& options,
                            const toft::StringPiece& key, const toft::StringPiece& value);
@@ -50,14 +58,20 @@ public:
     virtual StatusCode Delete(const WriteOptions& options, const toft::StringPiece& key);
 
 private:
+    void SetupOptions(const ReadOptions& x, leveldb::ReadOptions* l);
+    void SetupOptions(const WriteOptions& x, leveldb::WriteOptions* l);
+    void SetupBatchUpdates(WriteBatch* updates, leveldb::WriteBatch* ldb_updates);
+
+private:
     leveldb::DB* db_;
-    leveldb::Options* options_;
-    std::string db_path_;
+    leveldb::Options options_;
+//     std::string db_path_;
 };
 
 class LevelSystem : public BaseSystem {
 public:
-    virtual ~LevelSystem() {}
+    LevelSystem();
+    virtual ~LevelSystem();
 
     virtual LevelBase* Open(const std::string& db_path, const BaseOptions& base_options);
     virtual bool Exists(const std::string& db_path);
@@ -65,7 +79,8 @@ public:
     virtual int64_t GetSize(const std::string& db_path);
 
     static LevelSystem* GetRegisteredFileSystem() {
-        return static_cast<LevelSystem*>(TOFT_GET_BASE_SYSTEM(Level));
+        return NULL;
+//         return static_cast<LevelSystem*>(TOFT_GET_BASE_SYSTEM(Level));
     }
 
 private:

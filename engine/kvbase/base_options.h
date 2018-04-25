@@ -20,6 +20,10 @@ struct WriteOptions {
 
 };
 
+class WriteBatch {
+
+};
+
 } // namespace xsheet
 
 #endif // XSHEET_ENGINE_KVBASE_BASE_OPTIONS_H

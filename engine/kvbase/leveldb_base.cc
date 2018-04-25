@@ -8,6 +8,7 @@
 #include "thirdparty/gflags/gflags.h"
 #include "thirdparty/glog/logging.h"
 #include "thirdparty/leveldb/status.h"
+#include "thirdparty/leveldb/write_batch.h"
 
 #include "engine/kvbase/kv_base.h"
 
@@ -17,39 +18,45 @@ namespace xsheet {
 
 // Iterator
 
-LevelIterator::LevelIterator() {}
-
-LevelIterator::~LevelIterator() {}
-
-bool LevelIterator::Valid() const {
-
+LevelIterator::LevelIterator(leveldb::Iterator* ldb_iter)
+    : ldb_iter_(ldb_iter) {
+    CHECK(ldb_iter_);
 }
 
-void LevelIterator::eekToFirst() {
+LevelIterator::~LevelIterator() {
+    delete ldb_iter_;
+}
 
+bool LevelIterator::Valid() const {
+    return ldb_iter_->Valid();
+}
+
+void LevelIterator::SeekToFirst() {
+    ldb_iter_->SeekToFirst();
 }
 
 void LevelIterator::SeekToLast() {
-
+    ldb_iter_->SeekToLast();
 }
 
 void LevelIterator::Seek(const toft::StringPiece& target) {
-
+    ldb_iter_->Seek(target.as_string());
 }
 
 void LevelIterator::Next() {
-
+    ldb_iter_->Next();
 }
 
 void LevelIterator::Prev() {
-
+    ldb_iter_->Prev();
 }
 
 toft::StringPiece LevelIterator::Key() const {
-
+    return ldb_iter_->key().data();
 }
 
 toft::StringPiece LevelIterator::Value() const {
+    return ldb_iter_->value().data();
 
 }
 
@@ -59,13 +66,15 @@ StatusCode LevelIterator::Status() const {
 
 // KvBase
 
-LevelBase::LevelBase(leveldb::DB* db, leveldb::Options options, const std::string& db_path)
-    : db_(db), options_(options), db_path_(db_path_) {
+LevelBase::LevelBase(leveldb::DB* db, leveldb::Options ldb_options,
+                     const BaseOptions& base_options, const std::string& db_path)
+    : KvBase(db_path, base_options), db_(db), options_(ldb_options) {
     CHECK(db_);
 }
 
-
-LevelBase::~LevelBase() {}
+LevelBase::~LevelBase() {
+    delete db_;
+}
 
 StatusCode LevelBase::Put(const WriteOptions& options,
                           const toft::StringPiece& key, const toft::StringPiece& value) {
@@ -91,11 +100,15 @@ StatusCode LevelBase::Get(const ReadOptions& options,
 
 
 KvIterator* LevelBase::NewIterator(const ReadOptions& options) {
-
+    leveldb::Iterator* ldb_iter = db_->NewIterator(leveldb::ReadOptions());
+    CHECK(ldb_iter);
+    return new LevelIterator(ldb_iter);
 }
 
 StatusCode LevelBase::Write(const WriteOptions& options, WriteBatch* updates) {
-    leveldb::Status ldb_status = db_->Write(leveldb::WriteOptions(), updates);
+    leveldb::WriteBatch ldb_updates;
+    SetupBatchUpdates(updates, &ldb_updates);
+    leveldb::Status ldb_status = db_->Write(leveldb::WriteOptions(), &ldb_updates);
     StatusCode status_code = kBaseOk;
     if (!ldb_status.ok()) {
         LOG(ERROR) << "fail to put kv pair";
@@ -105,6 +118,18 @@ StatusCode LevelBase::Write(const WriteOptions& options, WriteBatch* updates) {
 }
 
 StatusCode LevelBase::Delete(const WriteOptions& options, const toft::StringPiece& key) {
+    return kBaseNotSupported;
+}
+
+void LevelBase::SetupOptions(const WriteOptions& x, leveldb::WriteOptions* l) {
+
+}
+
+void LevelBase::SetupOptions(const ReadOptions& x, leveldb::ReadOptions* l) {
+
+}
+
+void LevelBase::SetupBatchUpdates(WriteBatch* updates, leveldb::WriteBatch* ldb_updates) {
 
 }
 
@@ -113,7 +138,7 @@ StatusCode LevelBase::Delete(const WriteOptions& options, const toft::StringPiec
 LevelSystem::LevelSystem()
     : ldb_env_(NULL) {}
 
-LevelBase* LevelSystem::Open(const std::string& db_path, const BaseOptions& options) {
+LevelBase* LevelSystem::Open(const std::string& db_path, const BaseOptions& base_options) {
     db_path_ = db_path;
     base_options_ = base_options;
 
@@ -126,7 +151,7 @@ LevelBase* LevelSystem::Open(const std::string& db_path, const BaseOptions& opti
         return NULL;
     }
 
-    return new LevelBase(ldb, ldb_options, db_path_);
+    return new LevelBase(ldb, ldb_options, base_options_, db_path_);
 }
 
 bool LevelSystem::Exists(const std::string& db_path) {
@@ -148,7 +173,7 @@ void LevelSystem::SetupOptions(const BaseOptions& base_options, leveldb::Options
     } else {
         ldb_env_ = leveldb::Env::Default();
     }
-    CHEKC(ldb_env_) << ", leveldb env pointer should not be null";
+    CHECK(ldb_env_) << ", leveldb env pointer should not be null";
     ldb_options->env = ldb_env_;
 }
 

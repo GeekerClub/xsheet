@@ -11,10 +11,13 @@
 #include "toft/base/class_registry.h"
 #include "toft/base/uncopyable.h"
 
+#include "engine/kvbase/kv_base.h"
 #include "engine/kvbase/base_options.h"
 #include "proto/status_code.pb.h"
 
 namespace xsheet {
+
+class BaseSystem;
 
 class KvIterator {
 public:
@@ -35,6 +38,7 @@ public:
 
 class KvBase {
 public:
+    KvBase(const std::string& db_path, BaseOptions options);
     virtual ~KvBase() {}
 
     virtual StatusCode Put(const WriteOptions& options,
@@ -53,7 +57,7 @@ public:
     static  bool Delete(const std::string& db_path);
     static int64_t GetSize(const std::string& db_path);
 
-private:
+protected:
     static BaseSystem* GetBaseSystemByPath(const std::string& db_path);
 
 protected:
