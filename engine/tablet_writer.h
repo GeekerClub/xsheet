@@ -12,12 +12,10 @@
 #include "toft/system/threading/mutex.h"
 #include "toft/system/threading/thread.h"
 
+#include "engine/kvbase/kv_base.h"
+#include "engine/tablet_schema.pb.h"
 #include "proto/status_code.pb.h"
 #include "proto/tablet.pb.h"
-
-namespace leveldb {
-class WriteBatch;
-}
 
 namespace xsheet {
 
@@ -36,11 +34,10 @@ public:
     typedef std::vector<WriteTask> WriteTaskBuffer;
 
 public:
-    TabletWriter(leveldb::DB* ldb);
+    TabletWriter(const TabletSchema& schema, KvBase* kvbase);
     ~TabletWriter();
-    bool Write(std::vector<const RowMutationSequence*>* row_mutation_vec,
-               std::vector<StatusCode>* status_vec, bool is_instant,
-               WriteCallback callback, StatusCode* status = NULL);
+    StatusCode Write(std::vector<const RowMutationSequence*>* row_mutation_vec,
+                     std::vector<StatusCode>* status_vec, WriteCallback callback);
     static uint64_t CountRequestSize(std::vector<const RowMutationSequence*>& row_mutation_vec,
                                      bool kv_only);
     void Start();
@@ -49,8 +46,7 @@ public:
 private:
     void DoWork();
     bool SwapActiveBuffer(bool force);
-    void BatchRequest(WriteTaskBuffer* task_buffer,
-                      leveldb::WriteBatch* batch);
+    void BatchRequest(WriteTaskBuffer* task_buffer, WriteBatch* batch);
     bool CheckSingleRowTxnConflict(const RowMutationSequence& row_mu,
                                    std::set<std::string>* commit_row_key_set,
                                    StatusCode* status);
@@ -62,7 +58,9 @@ private:
     StatusCode FlushToDiskBatch(WriteTaskBuffer* task_buffer);
 
 private:
-    leveldb::DB* ldb_;
+    TabletSchema tablet_schema_;
+    KvBase* kvbase_;
+    RawKeyOperator* key_operator_;
 
     mutable toft::Mutex task_mutex_;
     mutable toft::Mutex status_mutex_;

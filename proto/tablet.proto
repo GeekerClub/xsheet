@@ -32,7 +32,14 @@ message Mutation {
 
 message RowMutationSequence {
     required bytes row_key = 1;
-    repeated Mutation mutation_sequence = 2;
-    optional SingleRowTxnReadInfo txn_read_info = 3;
+    repeated Mutation mutation_list = 2;
 }
 
+message KeyValuePair {
+    optional bytes key = 1;
+    optional bytes value = 2;
+    optional bool del = 3;
+    optional bytes column_family = 4;
+    optional bytes qualifier = 5;
+    optional int64 timestamp = 6;
+}
