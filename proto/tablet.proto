@@ -1,6 +1,6 @@
 import "proto/status_code.proto";
 
-package xsheet
+package xsheet;
 
 enum MutationType {
     kPut = 0;

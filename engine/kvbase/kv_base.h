@@ -51,6 +51,8 @@ public:
     virtual StatusCode Write(const WriteOptions& options, WriteBatch* updates) = 0;
     virtual StatusCode Delete(const WriteOptions& options, const toft::StringPiece& key) = 0;
 
+    std::string GetPath() const { return m_db_path; }
+
 public:
     static KvBase* Open(const std::string& db_path, const BaseOptions& options);
     static bool Exists(const std::string& db_path);

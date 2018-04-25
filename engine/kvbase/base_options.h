@@ -10,7 +10,7 @@
 
 #include "toft/base/string/string_piece.h"
 
-#include "engine/tablet_schema.pb.h"
+#include "proto/tablet.pb.h"
 
 namespace xsheet {
 
@@ -36,14 +36,14 @@ struct WriteBatch {
         KeyValuePair kv;
         kv.set_key(key.data(), key.size());
         kv.set_value(value.data(), value.size());
-        kv.set_is_del(false);
+        kv.set_del(false);
         key_value_list_.push_back(kv);
     }
 
     void Delete(const toft::StringPiece& key) {
         KeyValuePair kv;
         kv.set_key(key.data(), key.size());
-        kv.set_is_del(true);
+        kv.set_del(true);
         key_value_list_.push_back(kv);
     }
 

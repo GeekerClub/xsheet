@@ -1,0 +1,56 @@
+
+package xsheet;
+
+enum StoreType {
+    SATA_TYPE = 0;
+    SSD_TYPE = 1;
+    MEMORY_TYPE = 2;
+}
+
+enum CompressType {
+    NONE = 0;
+    GZIP = 1;
+    SNAPPY = 2;
+}
+
+enum KeyType {
+    Readable = 0;
+    Binary = 1;
+    TTLKv = 2; 
+    GeneralKv = 3;
+}
+
+message ACL {
+}
+
+message LocalityGroupSchema {
+    optional int32 id = 1;
+    optional string name = 2;
+    optional StoreType store_type = 3 [default = SATA_TYPE];
+    optional CompressType compress_type = 4 [default = NONE];
+    optional int32 block_size = 5 [default = 4]; // KB
+    optional bool use_bloom_filter = 6;
+    optional bool is_del = 7 [default = false];
+}
+
+message ColumnFamilySchema {
+    optional int32 id = 1;
+    optional string name = 2;
+    optional string locality_group = 3;
+    optional int32 owner = 4;
+    repeated ACL acl = 5;
+    optional int32 max_versions = 6 [default = 1];
+    optional int32 min_versions = 7 [default = 1];
+    optional int32 time_to_live = 8 [default = 0];
+    optional int64 disk_quota = 9;
+    optional string type = 10;
+}
+
+message TabletSchema {
+    optional int32 id = 1;
+    optional string name = 2;
+    repeated ACL acl = 3;
+    optional KeyType raw_key_type = 4 [default = Readable];
+    repeated ColumnFamilySchema column_families = 5;
+    repeated LocalityGroupSchema locality_groups = 6;
+}

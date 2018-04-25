@@ -7,11 +7,13 @@
 #define XSHEET_ENGINE_KVBASE_ASYNC_WRITER_H
 
 #include <functional>
+#include <set>
 
 #include "toft/system/threading/event.h"
 #include "toft/system/threading/mutex.h"
 #include "toft/system/threading/thread.h"
 
+#include "engine/codec/raw_key_operator.h"
 #include "engine/kvbase/kv_base.h"
 #include "engine/tablet_schema.pb.h"
 #include "proto/status_code.pb.h"
@@ -50,9 +52,8 @@ private:
     bool CheckSingleRowTxnConflict(const RowMutationSequence& row_mu,
                                    std::set<std::string>* commit_row_key_set,
                                    StatusCode* status);
-    bool CheckIllegalRowArg(const RowMutationSequence& row_mu,
-                            const std::set<std::string>& cf_set,
-                            StatusCode* status);
+    StatusCode CheckIllegalRowArg(const RowMutationSequence& row_mu,
+                            const std::set<std::string>& cf_set);
     void CheckRows(WriteTaskBuffer* task_buffer);
     void FinishTask(WriteTaskBuffer* task_buffer, StatusCode status);
     StatusCode FlushToDiskBatch(WriteTaskBuffer* task_buffer);
@@ -60,7 +61,7 @@ private:
 private:
     TabletSchema tablet_schema_;
     KvBase* kvbase_;
-    RawKeyOperator* key_operator_;
+    const RawKeyOperator* key_operator_;
 
     mutable toft::Mutex task_mutex_;
     mutable toft::Mutex status_mutex_;

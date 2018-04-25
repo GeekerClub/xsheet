@@ -73,9 +73,10 @@ enum StatusCode {
     kBaseNotOpen = 1006;
     kBaseShutdown = 1007;
 
-    kTabletOk = 2000
+    kTabletOk = 2000;
     kTabletAsyncNotRunning = 2001;
     kTabletAsyncTooBusy = 2002;
     kTabletAsyncFailure = 2003;
+    kTabletInvalidArg = 2004;
 }
 

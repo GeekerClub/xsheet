@@ -63,6 +63,8 @@ std::string Uint64ToString(uint64_t i, int base = 10);
 uint64_t StringToUint64(const std::string& int_str, int base = 10);
 
 
+std::string DebugString(const std::string& src);
+bool ParseDebugString(const std::string& src, std::string* dst);
 
 
 }  // namespace xsheet
