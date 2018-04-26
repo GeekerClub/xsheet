@@ -9,6 +9,7 @@ cc_library(
         '//proto:tablet_proto',
         '//thirdparty/leveldb:leveldb',
         '//toft/system/threading:threading',
-        '//toft/base/string:string'
+        '//toft/base/string:string',
+        '//toft/base:class_registry'
     ]
 )

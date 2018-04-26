@@ -35,6 +35,7 @@ cc_test(
     srcs = 'tablet_writer_test.cc',
     deps = [
         ':tablet_writer',
+        '//thirdparty/gflags:gflags',
         '//thirdparty/gtest:gtest'
     ]
 )
