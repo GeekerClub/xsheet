@@ -17,10 +17,10 @@
 #include "engine/tablet_utils.h"
 #include "engine/types.h"
 
-DECLARE_int32(xsheet_asyncwriter_pending_limit);
+DECLARE_int32(engine_writer_pending_limit);
 // DECLARE_bool(xsheet_enable_level0_limit);
-DECLARE_int32(xsheet_asyncwriter_sync_interval);
-DECLARE_int32(xsheet_asyncwriter_sync_size_threshold);
+DECLARE_int32(engine_writer_sync_interval);
+DECLARE_int32(engine_writer_sync_size_threshold);
 DECLARE_int32(xsheet_asyncwriter_batch_size);
 // DECLARE_bool(xsheet_sync_log);
 
@@ -97,7 +97,7 @@ uint64_t TabletWriter::CountRequestSize(std::vector<const RowMutationSequence*>&
 StatusCode TabletWriter::Write(std::vector<const RowMutationSequence*>* row_mutation_vec,
                          std::vector<StatusCode>* status_vec, WriteCallback callback) {
     static uint32_t last_print = time(NULL);
-    const uint64_t MAX_PENDING_SIZE = FLAGS_xsheet_asyncwriter_pending_limit * 1024UL;
+    const uint64_t MAX_PENDING_SIZE = FLAGS_engine_writer_pending_limit * 1024UL;
 
     toft::MutexLocker lock(&task_mutex_);
     if (stopped_) {
@@ -126,7 +126,7 @@ StatusCode TabletWriter::Write(std::vector<const RowMutationSequence*>* row_muta
     active_buffer_->push_back(task);
     active_buffer_size_ += request_size;
 //     active_buffer_instant_ |= is_instant;
-    if (active_buffer_size_ >= FLAGS_xsheet_asyncwriter_sync_size_threshold * 1024UL ||
+    if (active_buffer_size_ >= FLAGS_engine_writer_sync_size_threshold * 1024UL ||
         active_buffer_instant_) {
         write_event_.Set();
     }
@@ -135,7 +135,7 @@ StatusCode TabletWriter::Write(std::vector<const RowMutationSequence*>* row_muta
 
 void TabletWriter::DoWork() {
     sync_timestamp_ = toft::GetTimestampInMs();
-    int32_t sync_interval = FLAGS_xsheet_asyncwriter_sync_interval;
+    int32_t sync_interval = FLAGS_engine_writer_sync_interval;
     if (sync_interval == 0) {
         sync_interval = 1;
     }
@@ -162,7 +162,7 @@ void TabletWriter::DoWork() {
 }
 
 bool TabletWriter::SwapActiveBuffer(bool force) {
-    const uint64_t SYNC_SIZE = FLAGS_xsheet_asyncwriter_sync_size_threshold * 1024UL;
+    const uint64_t SYNC_SIZE = FLAGS_engine_writer_sync_size_threshold * 1024UL;
 //     if (FLAGS_xsheet_enable_level0_limit == true) {
 //         tablet_busy_ = tablet_->IsBusy();
 //     }
