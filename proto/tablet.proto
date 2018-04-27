@@ -43,3 +43,6 @@ message KeyValuePair {
     optional bytes qualifier = 5;
     optional int64 timestamp = 6;
 }
+
+message RowResult {
+    repeated KeyValuePair key_values = 1;
