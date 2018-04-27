@@ -45,9 +45,10 @@ public:
     void CreateTestData(const std::string& table_name,
                         int32_t key_start, int32_t key_end,
                         std::vector<TabletWriter::WriteTask>* task_list) {
+        LOG(ERROR) << "CreateTestData()";
         for (int32_t i = key_start; i < key_end; ++i) {
             TabletWriter::WriteTask task;
-            std::string str = toft::StringPrint("%08llu", i);
+            std::string str = toft::StringPrint("%08d", i);
             RowMutationSequence* mu_seq = new RowMutationSequence;
             mu_seq->set_row_key(str);
             Mutation* mutation = mu_seq->add_mutation_list();
@@ -68,6 +69,7 @@ public:
     }
 
     void CleanTestData(std::vector<TabletWriter::WriteTask> task_list) {
+        LOG(ERROR) << "CleanTestData()";
         for (uint32_t i = 0; i < task_list.size(); ++i) {
             delete task_list[i].row_mutation_vec->at(0);
             delete task_list[i].row_mutation_vec;
@@ -77,25 +79,30 @@ public:
 
     void CreateTestTable(const std::string& table_name,
                          const std::vector<TabletWriter::WriteTask>& task_list) {
-        std::string tablet_path = working_dir + table_name;
+        LOG(ERROR) << "CreateTestTable()";
+        std::string tablet_path = std::string("/leveldb/") + working_dir + table_name;
         TabletSchema tablet_schema;
         tablet_schema.set_name(table_name);
 
-
+        LOG(ERROR) << "here 1";
         kvbase_.reset(KvBase::Open(tablet_path, BaseOptions()));
-        CHECK(kvbase_.get());
+        CHECK(kvbase_.get() != NULL) << ", fail to open: " << tablet_path;
         TabletWriter tablet_writer(tablet_schema, kvbase_.get());
+        LOG(ERROR) << "here 2";
 
+        tablet_writer.Start();
         for (uint32_t i = 0; i < task_list.size(); ++i) {
             EXPECT_EQ(kTabletOk, tablet_writer.Write(
                     task_list[i].row_mutation_vec,
                     task_list[i].status_vec,
                     task_list[i].callback));
         }
+        tablet_writer.Stop();
     }
 
     void VerifyOperation(const std::string& table_name,
                          int32_t key_start, int32_t key_end) {
+        LOG(ERROR) << "VerifyOperation()";
     }
 
 protected:
