@@ -21,7 +21,7 @@ class BaseSystem;
 
 class KvIterator {
 public:
-    virtual ~KvIterator();
+    virtual ~KvIterator() {}
 
     virtual bool Valid() const = 0;
     virtual void SeekToFirst() = 0;
@@ -60,7 +60,8 @@ public:
     static int64_t GetSize(const std::string& db_path);
 
 protected:
-    static BaseSystem* GetBaseSystemByPath(const std::string& db_path);
+    static BaseSystem* GetBaseSystemByPath(const std::string& db_path,
+                                           std::string* real_path = NULL);
 
 protected:
     std::string m_db_path;

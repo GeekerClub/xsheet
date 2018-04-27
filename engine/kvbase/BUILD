@@ -5,11 +5,13 @@ cc_library(
         'leveldb_base.cc'
     ],
     deps = [
+        '//engine:engine_flags',
         '//proto:status_code_proto',
         '//proto:tablet_proto',
         '//thirdparty/leveldb:leveldb',
         '//toft/system/threading:threading',
         '//toft/base/string:string',
         '//toft/base:class_registry'
-    ]
+    ],
+    link_all_symbols=True
 )

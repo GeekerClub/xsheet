@@ -12,7 +12,7 @@
 
 #include "engine/kvbase/kv_base.h"
 
-DECLARE_string(xsheet_leveldb_env_type);
+DECLARE_string(engine_leveldb_env_type);
 
 namespace xsheet {
 
@@ -135,15 +135,20 @@ void LevelBase::SetupBatchUpdates(WriteBatch* updates, leveldb::WriteBatch* ldb_
 
 // BaseSystem
 
-LevelSystem::LevelSystem()
+
+LevelBaseSystem::LevelBaseSystem()
     : ldb_env_(NULL) {}
 
-LevelBase* LevelSystem::Open(const std::string& db_path, const BaseOptions& base_options) {
+
+LevelBaseSystem::~LevelBaseSystem() {}
+
+LevelBase* LevelBaseSystem::Open(const std::string& db_path, const BaseOptions& base_options) {
     db_path_ = db_path;
     base_options_ = base_options;
 
     leveldb::DB* ldb = NULL;
     leveldb::Options ldb_options;
+    ldb_options.create_if_missing = true;
     SetupOptions(base_options, &ldb_options);
     leveldb::Status ldb_status = leveldb::DB::Open(ldb_options, db_path, &ldb);
     if (!ldb_status.ok()) {
@@ -154,21 +159,21 @@ LevelBase* LevelSystem::Open(const std::string& db_path, const BaseOptions& base
     return new LevelBase(ldb, ldb_options, base_options_, db_path_);
 }
 
-bool LevelSystem::Exists(const std::string& db_path) {
+bool LevelBaseSystem::Exists(const std::string& db_path) {
     return ldb_env_->FileExists(db_path);
 }
 
-bool LevelSystem::Delete(const std::string& db_path) {
+bool LevelBaseSystem::Delete(const std::string& db_path) {
     return false;
 }
 
-int64_t LevelSystem::GetSize(const std::string& db_path) {
+int64_t LevelBaseSystem::GetSize(const std::string& db_path) {
     return false;
 }
 
-void LevelSystem::SetupOptions(const BaseOptions& base_options, leveldb::Options* ldb_options) {
+void LevelBaseSystem::SetupOptions(const BaseOptions& base_options, leveldb::Options* ldb_options) {
 
-    if (FLAGS_xsheet_leveldb_env_type == "local") {
+    if (FLAGS_engine_leveldb_env_type == "local") {
         ldb_env_ = leveldb::Env::Default();
     } else {
         ldb_env_ = leveldb::Env::Default();
@@ -176,5 +181,9 @@ void LevelSystem::SetupOptions(const BaseOptions& base_options, leveldb::Options
     CHECK(ldb_env_) << ", leveldb env pointer should not be null";
     ldb_options->env = ldb_env_;
 }
+
+const char* LevelBaseSystem::Level = "leveldb";
+
+TOFT_REGISTER_BASE_SYSTEM("leveldb", LevelBaseSystem);
 
 } // namespace xsheet

@@ -68,20 +68,22 @@ private:
 //     std::string db_path_;
 };
 
-class LevelSystem : public BaseSystem {
+class LevelBaseSystem : public BaseSystem {
 public:
-    LevelSystem();
-    virtual ~LevelSystem();
+    LevelBaseSystem();
+    virtual ~LevelBaseSystem();
 
     virtual LevelBase* Open(const std::string& db_path, const BaseOptions& base_options);
     virtual bool Exists(const std::string& db_path);
     virtual bool Delete(const std::string& db_path);
     virtual int64_t GetSize(const std::string& db_path);
 
-    static LevelSystem* GetRegisteredFileSystem() {
-        return NULL;
-//         return static_cast<LevelSystem*>(TOFT_GET_BASE_SYSTEM(Level));
+    static LevelBaseSystem* GetRegisteredBaseSystem() {
+        return static_cast<LevelBaseSystem*>(TOFT_GET_BASE_SYSTEM(Level));
     }
+
+public:
+    static const char* Level;
 
 private:
     void SetupOptions(const BaseOptions& base_options, leveldb::Options* ldb_options);
