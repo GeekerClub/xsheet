@@ -59,6 +59,7 @@ public:
                 new std::vector<const RowMutationSequence*>;
             row_mutation_vec->push_back(mu_seq);
             std::vector<StatusCode>* status_vec = new std::vector<StatusCode>;
+            status_vec->push_back(kTabletOk);
 
             task.row_mutation_vec = row_mutation_vec;
             task.status_vec = status_vec;
@@ -98,6 +99,7 @@ public:
                     task_list[i].callback));
         }
         tablet_writer.Stop();
+        LOG(ERROR) << "here 3";
     }
 
     void VerifyOperation(const std::string& table_name,
