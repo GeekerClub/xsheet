@@ -85,11 +85,9 @@ public:
         TabletSchema tablet_schema;
         tablet_schema.set_name(table_name);
 
-        LOG(ERROR) << "here 1";
         kvbase_.reset(KvBase::Open(tablet_path, BaseOptions()));
         CHECK(kvbase_.get() != NULL) << ", fail to open: " << tablet_path;
         TabletWriter tablet_writer(tablet_schema, kvbase_.get());
-        LOG(ERROR) << "here 2";
 
         tablet_writer.Start();
         for (uint32_t i = 0; i < task_list.size(); ++i) {
@@ -99,7 +97,6 @@ public:
                     task_list[i].callback));
         }
         tablet_writer.Stop();
-        LOG(ERROR) << "here 3";
     }
 
     void VerifyOperation(const std::string& table_name,
