@@ -53,4 +53,5 @@ message TabletSchema {
     optional KeyType raw_key_type = 4 [default = Readable];
     repeated ColumnFamilySchema column_families = 5;
     repeated LocalityGroupSchema locality_groups = 6;
+    optional string alias = 7;
 }

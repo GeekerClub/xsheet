@@ -10,6 +10,7 @@
 // engine
 
 DEFINE_string(engine_leveldb_env_type, "local", "base env for leveldb");
+DEFINE_int64(engine_write_block_size, 4, "the block size (in KB) for teblet write block");
 
 DEFINE_int32(engine_writer_pending_limit, 10000, "the max pending data size (KB) in async writer");
 DEFINE_int32(engine_writer_sync_interval, 100, "the interval (in ms) to sync write buffer to disk");
