@@ -12,14 +12,23 @@ cc_library(
 )
 
 cc_library(
+    name = 'tablet_utils',
+    srcs = 'tablet_utils.cc',
+    deps = [
+        ':tablet_schema_proto',
+        '//engine/codec:raw_key'
+    ]
+)
+
+cc_library(
     name = 'tablet_writer',
     srcs = [
-        'tablet_writer.cc',
-        'tablet_utils.cc'
+        'tablet_writer.cc'
     ],
     deps = [
         ':engine_flags',
         ':tablet_schema_proto',
+        ':tablet_utils',
         '//engine/codec:raw_key',
         '//engine/kvbase:kvbase',
         '//thirdparty/gflags:gflags',
@@ -28,6 +37,23 @@ cc_library(
         '//toft/system/time:time'
     ]
 
+)
+
+cc_library(
+    name = 'tablet_scanner',
+    srcs = [
+        'drop_checker.cc',
+        'tablet_scanner.cc'
+    ],
+    deps = [
+        ':tablet_schema_proto',
+        ':tablet_utils',
+        '//proto:tablet_proto',
+        '//engine/codec:raw_key',
+        '//toft/base/string:string',
+        '//toft/system/time:time',
+        '//thirdparty/glog:glog'
+    ]
 )
 
 cc_test(

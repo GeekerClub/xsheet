@@ -46,3 +46,4 @@ message KeyValuePair {
 
 message RowResult {
     repeated KeyValuePair key_values = 1;
+}

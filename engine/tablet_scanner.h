@@ -7,13 +7,18 @@
 #define XSHEET_ENGINE_TABLET_SCANNER_H
 
 #include <limits>
+#include <set>
 
+#include "engine/codec/raw_key.h"
 #include "engine/kvbase/kv_base.h"
+#include "engine/tablet_schema.pb.h"
 #include "engine/types.h"
 #include "proto/status_code.pb.h"
 #include "proto/tablet.pb.h"
 
 namespace xsheet {
+
+class DropChecker;
 
 typedef std::map< std::string, std::set<std::string> > ColumnFamilyMap;
 
@@ -44,11 +49,11 @@ struct ScanContext {
     std::string end_user_key;
     ScanOptions scan_options;
     KvIterator* it; // init to NULL
-//     leveldb::CompactStrategy* compact_strategy;
+    DropChecker* drop_checker;
     uint32_t version_num;
-    std::string last_key;
-    std::string last_col;
-    std::string last_qual;
+    std::string prev_key;
+    std::string prev_col;
+    std::string prev_qual;
 
     // use for reture
     StatusCode ret_code; // set by lowlevelscan
@@ -63,17 +68,28 @@ struct ScanStats {
 
 class TabletScanner {
 public:
-    TabletScanner(cosnt TabletSchema& tablet_schema, KvBase* kvbase);
+    TabletScanner(const TabletSchema& tablet_schema, KvBase* kvbase);
     ~TabletScanner();
+
+    StatusCode Scan(const ScanOptions& scan_options,
+                    ScanContext* scan_context,
+                    ScanStats* scan_stats);
 
 private:
     StatusCode ScanImpl(const ScanOptions& scan_options,
                         ScanContext* scan_context,
                         ScanStats* scan_stats);
+    bool FillBufferAndCheckLimit(const KeyValuePair& record,
+                                 const ScanOptions& scan_options,
+                                 RowResult* results_list,
+                                 uint32_t *in_buffer_size);
+    void PrepareContextForNextScan(const KeyValuePair& record,
+                                   ScanContext* scan_context);
 
 private:
    TabletSchema tablet_schema_;
    KvBase* kvbase_;
+   const RawKeyOperator* key_operator_;
 };
 
 } // namespace xsheet

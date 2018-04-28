@@ -18,11 +18,9 @@
 #include "engine/types.h"
 
 DECLARE_int32(engine_writer_pending_limit);
-// DECLARE_bool(xsheet_enable_level0_limit);
 DECLARE_int32(engine_writer_sync_interval);
 DECLARE_int32(engine_writer_sync_size_threshold);
 DECLARE_int32(xsheet_asyncwriter_batch_size);
-// DECLARE_bool(xsheet_sync_log);
 
 namespace xsheet {
 
