@@ -45,10 +45,10 @@ struct ScanOptions {
 struct ScanContext {
     int64_t session_id;
 
-    std::string start_raw_key;
+    std::string start_user_key;
     std::string end_user_key;
     ScanOptions scan_options;
-    KvIterator* it; // init to NULL
+    KvIterator* it;
     DropChecker* drop_checker;
     uint32_t version_num;
     std::string prev_key;
@@ -56,9 +56,12 @@ struct ScanContext {
     std::string prev_qual;
 
     // use for reture
-    StatusCode ret_code; // set by lowlevelscan
-    bool completed; // test this flag know whether scan finish or not
-    RowResult* results; // scan result for one round
+    StatusCode ret_code;
+    bool completed;
+    RowResult* results;
+
+    ScanContext()
+        : it(NULL), ret_code(kTabletOk), completed(false), results(NULL) {}
 };
 
 struct ScanStats {

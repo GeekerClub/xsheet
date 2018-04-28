@@ -26,6 +26,17 @@ StatusCode TabletScanner::Scan(const ScanOptions& scan_options,
                                                 scan_context->end_user_key,
                                                 key_operator_);
     scan_context->drop_checker = drop_checker;
+
+    std::string seek_key = scan_context->start_user_key;
+    if (scan_context->prev_key > seek_key) {
+        seek_key = scan_context->prev_key;
+    }
+    scan_context->it = kvbase_->NewIterator(ReadOptions());
+    scan_context->it->Seek(seek_key);
+
+    scan_stats->read_row_count = 0;
+    scan_stats->read_bytes = 0;
+    scan_context->completed = false;
     return ScanImpl(scan_options, scan_context, scan_stats);
 }
 
@@ -42,10 +53,6 @@ StatusCode TabletScanner::ScanImpl(const ScanOptions& scan_options,
     int64_t time_out = now_time + scan_options.timeout;
     KeyValuePair next_start_kv_pair;
 
-    scan_stats->read_row_count = 0;
-    scan_stats->read_bytes = 0;
-    scan_context->completed = false;
-
     for (KvIterator* it = scan_context->it; it->Valid();) {
         scan_stats->read_bytes += (it->Key().size() + it->Value().size());
         scan_stats->read_row_count++;
@@ -56,6 +63,7 @@ StatusCode TabletScanner::ScanImpl(const ScanOptions& scan_options,
         KeyValuePair row_record;
         if (!drop_checker->DropCheck(raw_key, &row_record)) {
             it->Next();
+            return kTabletInvalidArg;
         }
 
         if (drop_checker->IsCompleted()) {
