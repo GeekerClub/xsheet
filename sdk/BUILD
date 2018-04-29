@@ -10,3 +10,12 @@ cc_library(
         '//toft/base/string:string'
     ]
 )
+
+cc_test(
+    name = 'prop_tree_test',
+    srcs = 'prop_tree_test.cc',
+    deps = [
+        ':schema_utils',
+        '//thirdparty/gtest:gtest'
+    ]
+)
