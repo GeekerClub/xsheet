@@ -22,13 +22,11 @@ Table* ClientImpl::OpenTable(const std::string& table_name, ErrorCode* err) {
 
 }
 
-bool ClientImpl::CreateTable(const TableDescriptor& desc, ErrorCode* err) {
-
-}
-
-bool ClientImpl::CreateTable(const TableDescriptor& desc,
-                         const std::vector<std::string>& tablet_delim,
-                         ErrorCode* err) {
+bool ClientImpl::CreateTable(const TabletSchema& schema, ErrorCode* err) {
+    std::string internal_table_name =
+        schema.name() + "@" + toft::NumberToString(toft::GetTimestampInMs());
+    schema.set_alias(schema.name());
+    schema.set_name(internal_table_name);
 
 }
 

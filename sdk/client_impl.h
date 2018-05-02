@@ -28,9 +28,6 @@ public:
     virtual Table* OpenTable(const std::string& table_name, ErrorCode* err);
 
     virtual bool CreateTable(const TableDescriptor& desc, ErrorCode* err);
-    virtual bool CreateTable(const TableDescriptor& desc,
-                             const std::vector<std::string>& tablet_delim,
-                             ErrorCode* err);
 
     virtual bool UpdateTableSchema(const TableDescriptor& desc, ErrorCode* err);
     virtual bool UpdateCheck(const std::string& table_name, bool* done, ErrorCode* err);
