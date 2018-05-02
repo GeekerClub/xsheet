@@ -8,6 +8,10 @@
 
 namespace xsheet {
 
+DEFINE_string(xsheet_sdk_conf_file, "", "the path of default flag file");
+DEFINE_string(tera_user_identity, "", "the identity of tera user");
+DEFINE_string(tera_user_passcode, "", "the passcode of tera user");
+
 // engine
 
 DEFINE_string(xsheet_leveldb_env_type, "local", "base env for leveldb");
