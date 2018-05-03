@@ -96,6 +96,39 @@ bool TableImpl::Put(const std::string& row_key, const std::string& family,
     return Put(row_key, family, qualifier, value_str, err);
 }
 
+bool TableImpl::Put(const std::string& row_key, const std::string& family,
+                    const std::string& qualifier, const std::string& value,
+                    int64_t timestamp, ErrorCode* err) {
+    RowMutation* row_mu = NewRowMutation(row_key);
+    row_mu->Put(family, qualifier, timestamp, value);
+    ApplyMutation(row_mu);
+    *err = row_mu->GetError();
+    delete row_mu;
+    return (err->GetType() == ErrorCode::kOK ? true : false);
+}
+
+bool TableImpl::Put(const std::string& row_key, const std::string& family,
+                    const std::string& qualifier, const std::string& value,
+                    int32_t ttl, ErrorCode* err) {
+    RowMutation* row_mu = NewRowMutation(row_key);
+    row_mu->Put(family, qualifier, value, ttl);
+    ApplyMutation(row_mu);
+    *err = row_mu->GetError();
+    delete row_mu;
+    return (err->GetType() == ErrorCode::kOK ? true : false);
+}
+
+bool TableImpl::Put(const std::string& row_key, const std::string& family,
+                    const std::string& qualifier, const std::string& value,
+                    int64_t timestamp, int32_t ttl, ErrorCode* err) {
+    RowMutation* row_mu = NewRowMutation(row_key);
+    row_mu->Put(family, qualifier, timestamp, value, ttl);
+    ApplyMutation(row_mu);
+    *err = row_mu->GetError();
+    delete row_mu;
+    return (err->GetType() == ErrorCode::kOK ? true : false);
+}
+
 bool TableImpl::Add(const std::string& row_key, const std::string& family,
                     const std::string& qualifier, int64_t delta,
                     ErrorCode* err) {
@@ -148,15 +181,44 @@ bool TableImpl::IsGetFinished() {
 }
 
 bool TableImpl::Get(const std::string& row_key, const std::string& family,
-                 const std::string& qualifier, std::string* value,
-                 ErrorCode* err) {
-
+                    const std::string& qualifier, std::string* value,
+                    ErrorCode* err) {
+    return Get(row_key, family, qualifier, value, 0, err);
 }
 
 bool TableImpl::Get(const std::string& row_key, const std::string& family,
-                 const std::string& qualifier, int64_t* value,
-                 ErrorCode* err) {
+                    const std::string& qualifier, int64_t* value,
+                    ErrorCode* err) {
+    return Get(row_key, family, qualifier, value, 0, err);
+}
 
+bool TableImpl::Get(const std::string& row_key, const std::string& family,
+                    const std::string& qualifier, int64_t* value,
+                    uint64_t snapshot_id, ErrorCode* err) {
+    std::string value_str;
+    if (Get(row_key, family, qualifier, &value_str, err, snapshot_id)
+        && value_str.size() == sizeof(int64_t)) {
+        *value = *(int64_t*)value_str.c_str();
+        return true;
+    }
+    return false;
+}
+
+bool TableImpl::Get(const std::string& row_key, const std::string& family,
+                    const std::string& qualifier, std::string* value,
+                    uint64_t snapshot_id, ErrorCode* err) {
+    RowReader* row_reader = NewRowReader(row_key);
+    row_reader->AddColumn(family, qualifier);
+    row_reader->SetSnapshot(snapshot_id);
+    Get(row_reader);
+    *err = row_reader->GetError();
+    if (err->GetType() == ErrorCode::kOK) {
+        *value = row_reader->Value();
+        delete row_reader;
+        return true;
+    }
+    delete row_reader;
+    return false;
 }
 
 ResultStream* TableImpl::Scan(const ScanDescriptor& desc, ErrorCode* err) {
