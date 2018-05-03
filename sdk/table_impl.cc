@@ -6,6 +6,9 @@
 
 #include "sdk/tablet_impl.h"
 
+
+#include "toft/base/scopted_ptr.h"
+
 namespace xsheet {
 
 TableImpl::TableImpl(const TabletSchema& tablet_schema, KvBase* kvbase)
@@ -28,52 +31,103 @@ RowMutation* TableImpl::NewRowMutation(const std::string& row_key) {
 
 }
 
-void TableImpl::ApplyMutation(const std::vector<RowMutation*>& row_mutations) {
+void TableImpl::MutationCallback(std::vector<const RowMutationSequence*>* row_mutation_vec,
+                                 std::vector<StatusCode>* status_vec) {
+    LOG(INFO) << "MutationCallback()";
+    delete row_mutation_vec;
+    delete status_vec;
+}
 
+void TableImpl::ApplyMutation(const std::vector<RowMutation*>& row_mutations) {
+//     toft::Closure<void>* callback =
+//         toft::NewClosure(this, &TableImpl::CommitMutation, &row_mutations);
+//     thread_pool_->AddTask(callback);
+    CommitMutation(row_mutations);
+}
+
+void TableImpl::CommitMutation(const std::vector<RowMutation*>& row_mutations) {
+    std::vector<const RowMutationSequence*>* row_mutation_vec
+        = new std::vector<const RowMutationSequence*>;
+    for (uint32_t i = 0; i < row_mutations.size(); ++i) {
+        RowMutation* row_mutation = row_mutations[i];
+        RowMutationSequence* mu_seq = new RowMutationSequence;
+        mu_seq->set_row_key(row_mutation->RowKey());
+        for (uint32_t j = 0; j < row_mutation->MutationNum(); ++j) {
+            const RowMutation::Mutation& mu = row_mutation->GetMutation(j);
+            Mutation* mutation = mu_seq->add_mutation_sequence();
+            SerializeMutation(mu, mutation);
+        }
+        row_mutation_vec.push_back(mu_seq);
+    }
+    std::vector<StatusCode>* status_vec = new  std::vector<StatusCode>;
+    TabletWriter::WriteCallback write_callback =
+        std::bind(TableImpl::MutationCallback, this, std::placeholders::_1, std::placeholders::_2);
+    tablet_writer_.Write(row_mutation_vec, status_vec, write_callback);
 }
 
 void TableImpl::Put(RowMutation* row_mutation) {
     std::vector<RowMutation*> row_mutations;
     row_mutations.push_back(row_mutation);
-    ApplyMuation(row_mutations);
+    Put(row_mutations);
 }
 
 void TableImpl::Put(const std::vector<RowMutation*>& row_mutations) {
-
+    ApplyMuation(row_mutations);
 }
 
 bool TableImpl::IsPutFinished() {
-
+    return false;
 }
 
 bool TableImpl::Put(const std::string& row_key, const std::string& family,
                     const std::string& qualifier, const std::string& value,
                     ErrorCode* err) {
-
+    RowMutation* row_mu = NewRowMutation(row_key);
+    row_mu->Put(family, qualifier, value);
+    ApplyMutation(row_mu);
+    *err = row_mu->GetError();
+    return (err->GetType() == ErrorCode::kOK ? true : false);
 }
 
 bool TableImpl::Put(const std::string& row_key, const std::string& family,
                     const std::string& qualifier, const int64_t value,
                     ErrorCode* err) {
-
+    std::string value_str((char*)&value, sizeof(int64_t));
+    return Put(row_key, family, qualifier, value_str, err);
 }
 
 bool TableImpl::Add(const std::string& row_key, const std::string& family,
                     const std::string& qualifier, int64_t delta,
                     ErrorCode* err) {
-
+    RowMutation* row_mu = NewRowMutation(row_key);
+    row_mu->Add(family, qualifier, delta);
+    ApplyMutation(row_mu);
+    *err = row_mu->GetError();
+    delete row_mu;
+    return (err->GetType() == ErrorCode::kOK ? true : false);
 }
 
 bool TableImpl::PutIfAbsent(const std::string& row_key, const std::string& family,
                             const std::string& qualifier, const std::string& value,
                             ErrorCode* err) {
+    RowMutation* row_mu = NewRowMutation(row_key);
+    row_mu->PutIfAbsent(family, qualifier, value);
+    ApplyMutation(row_mu);
+    *err = row_mu->GetError();
+    delete row_mu;
+    return (err->GetType() == ErrorCode::kOK ? true : false);
 
 }
 
 bool TableImpl::Append(const std::string& row_key, const std::string& family,
                     const std::string& qualifier, const std::string& value,
                     ErrorCode* err) {
-
+    RowMutation* row_mu = NewRowMutation(row_key);
+    row_mu->Append(family, qualifier, value);
+    ApplyMutation(row_mu);
+    *err = row_mu->GetError();
+    delete row_mu;
+    return (err->GetType() == ErrorCode::kOK ? true : false);
 }
 
 

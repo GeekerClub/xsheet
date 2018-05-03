@@ -89,6 +89,10 @@ public:
 
 private:
     void ApplyMutation(const std::vector<RowMutation*>& row_mutations);
+    void CommitMutation(const std::vector<RowMutation*>& row_mutations);
+    void MutationCallback(std::vector<const RowMutationSequence*>* row_mutation_vec,
+                          std::vector<StatusCode>* status_vec);
+
 
 private:
     TableImpl(const TableImpl&);
@@ -99,7 +103,7 @@ private:
     TabletWriter tablet_writer_;
     TabletScanner tablet_scanner_;
 
-    toft::ThreadPool thread_pool_;
+    toft::scopted_ptr<toft::ThreadPool> thread_pool_;
 };
 
 } // namespace xsheet
