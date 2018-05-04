@@ -153,8 +153,8 @@ bool TableImpl::PutIfAbsent(const std::string& row_key, const std::string& famil
 }
 
 bool TableImpl::Append(const std::string& row_key, const std::string& family,
-                    const std::string& qualifier, const std::string& value,
-                    ErrorCode* err) {
+                       const std::string& qualifier, const std::string& value,
+                       ErrorCode* err) {
     RowMutation* row_mu = NewRowMutation(row_key);
     row_mu->Append(family, qualifier, value);
     ApplyMutation(row_mu);
@@ -169,7 +169,9 @@ RowReader* TableImpl::NewRowReader(const std::string& row_key) {
 }
 
 void TableImpl::Get(RowReader* row_reader) {
-
+    std::vector<RowReader*> row_readers;
+    row_readers.push_back(row_reader);
+    Get(row_readers);
 }
 
 void TableImpl::Get(const std::vector<RowReader*>& row_readers) {

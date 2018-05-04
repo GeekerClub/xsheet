@@ -12,6 +12,8 @@ namespace xsheet {
 const int64_t kLatestTimestamp = INT64_MAX;
 const int64_t kOldestTimestamp = INT64_MIN;
 
+const uint64_t UnInvalidSessionId = 0;
+
 } // namespace xsheet
 
 #endif // XSHEET_ENGINE_TYPES_H

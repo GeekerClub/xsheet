@@ -67,6 +67,9 @@ struct ScanContext {
 struct ScanStats {
     uint32_t read_row_count;
     uint32_t read_bytes;
+
+    ScanStats() { Reset(); }
+    void Reset() { read_row_count = 0; read_bytes = 0; }
 };
 
 class TabletScanner {
