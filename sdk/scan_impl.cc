@@ -92,6 +92,8 @@ std::string ResultStreamImpl::ColumnName() const {
 
 std::string ResultStreamImpl::Qualifier() const {
 
+    const KeyValuePair& pair = scan_context_->results->key_values(next_idx_);
+    return std::string(pair.qualifier().data(), pair.qualifier().size());
 }
 
 int64_t ResultStreamImpl::Timestamp() const {
