@@ -70,7 +70,12 @@ bool ResultStreamImpl::LookUp(const std::string& row_key) {
 }
 
 bool ResultStreamImpl::Done(ErrorCode* err) {
+    if (err) {
+        error->SetFailed(ErrorCode::kOK);
+    }
+    while (true) {
 
+    }
 }
 
 void ResultStreamImpl::Next() {
