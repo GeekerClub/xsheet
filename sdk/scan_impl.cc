@@ -74,8 +74,18 @@ bool ResultStreamImpl::Done(ErrorCode* err) {
         error->SetFailed(ErrorCode::kOK);
     }
     while (true) {
-
+        if (next_idx_ < scan_context_->results->key_values_size()) {
+            return true;
+        }
+        ScanSessionReset();
+        StatusCode status = tablet_scanner_->Scan(scan_options, scan_context, scan_stats_);
+        if (status != kTabletOk) {
+            LOG(ERROR) << "fail to scan: " << scan_context->start_user_key
+                << ", " << scan_context->end_user_key;
+            return false;
+        }
     }
+    return true;
 }
 
 void ResultStreamImpl::Next() {

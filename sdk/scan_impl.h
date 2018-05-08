@@ -24,7 +24,7 @@ class TabletScanner;
 
 class ResultStreamImpl : public ResultStream {
 public:
-    ResultStreamImpl(TableImpl* table, ScanDescImpl* scan_desc_impl);
+    ResultStreamImpl(TabletScanner* tablet_scanner, ScanDescImpl* scan_desc_impl);
     virtual ~ResultStreamImpl();
 
     bool LookUp(const std::string& row_key);

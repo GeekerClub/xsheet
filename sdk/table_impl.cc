@@ -224,7 +224,13 @@ bool TableImpl::Get(const std::string& row_key, const std::string& family,
 }
 
 ResultStream* TableImpl::Scan(const ScanDescriptor& desc, ErrorCode* err) {
-
+    ScanDescImpl* desc_impl = (ScanDescImpl*) &desc;
+    ResultStreamImpl* result_stream = new ResultStreamImpl(tablet_scanner_, desc_impl);
+    if (!retult_stream) {
+        LOG(ERROR) << "faill to create scan handler";
+        return NULL;
+    }
+    return result_stream;
 }
 
 Transaction* TableImpl::StartRowTransaction(const std::string& row_key) {
