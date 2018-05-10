@@ -11,6 +11,16 @@ cc_library(
     ]
 )
 
+cc_library(
+    name = 'table',
+    srcs = [
+        'sdk_flags.cc',
+        'scan.cc',
+        'scan_impl.cc',
+        'table_impl.cc'
+    ]
+)
+
 cc_test(
     name = 'prop_tree_test',
     srcs = 'prop_tree_test.cc',
