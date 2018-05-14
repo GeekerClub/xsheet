@@ -47,3 +47,8 @@ message KeyValuePair {
 message RowResult {
     repeated KeyValuePair key_values = 1;
 }
+
+message TimeRange {
+    required int64 ts_start = 1;
+    required int64 ts_end = 2;
+}

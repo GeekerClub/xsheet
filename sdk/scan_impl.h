@@ -16,7 +16,8 @@
 
 #include "engine/tablet_scanner.h"
 #include "engine/types.h"
-
+#include "proto/tablet.pb.h"
+#include "xsheet/scan.h"
 
 namespace xsheet {
 
@@ -48,9 +49,10 @@ private:
     void operator=(const ResultStreamImpl&);
 
     void FillScanOptions(ScanDescImpl* desc_impl, ScanOptions* scan_options);
+    void ScanSessionReset();
 
 protected:
-    tera::ScanDescImpl* scan_desc_impl_;
+    xsheet::ScanDescImpl* scan_desc_impl_;
     TabletScanner* tablet_scanner_;
 
     ScanContext* scan_context_;
@@ -81,7 +83,7 @@ public:
 
     bool SetFilter(const std::string& schema);
 
-    void SetValueConverter(ValueConverter converter);
+//     void SetValueConverter(ValueConverter converter);
 
     void SetSnapshot(uint64_t snapshot_id);
 
@@ -92,7 +94,7 @@ public:
     void SetAsync(bool async);
 
     void SetStart(const std::string& row_key, const std::string& column_family = "",
-                  const std::string& qualifier = "", int64_t time_stamp = kLatestTs);
+                  const std::string& qualifier = "", int64_t time_stamp = kLatestTimestamp);
 
     const std::string& GetStartRowKey() const;
 
@@ -114,7 +116,7 @@ public:
 
     int64_t GetNumberLimit();
 
-private:
+public:
     struct ColumnFamily {
         std::string family_name;
         std::vector<std::string> qualifier_list;
@@ -127,6 +129,7 @@ private:
     std::string start_qualifier_;
     int64_t start_timestamp_;
     std::vector<ColumnFamily*> cf_list_;
+    xsheet::TimeRange* timer_range_;
     int64_t buf_size_;
     int64_t number_limit_;
     bool is_async_;

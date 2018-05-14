@@ -8,6 +8,7 @@
 #include <functional>
 
 #include "thirdparty/glog/logging.h"
+#include "toft/base/string/algorithm.h"
 
 #include "proto/status_code.pb.h"
 
@@ -41,7 +42,7 @@ ScanDescImpl* ResultStreamImpl::GetScanDesc() {
 std::string ResultStreamImpl::GetNextStartPoint(const std::string& str) {
     const static std::string x0("\x0", 1);
     const static std::string x1("\x1");
-    RawKey rawkey_type = table_ptr_->GetTableSchema().raw_key();
+    KeyType rawkey_type = tablet_scanner_->GetTabletSchema().raw_key_type();
     return rawkey_type == Readable ? str + x1 : str + x0;
 }
 
@@ -71,17 +72,18 @@ bool ResultStreamImpl::LookUp(const std::string& row_key) {
 
 bool ResultStreamImpl::Done(ErrorCode* err) {
     if (err) {
-        error->SetFailed(ErrorCode::kOK);
+        err->SetFailed(ErrorCode::kOK);
     }
     while (true) {
         if (next_idx_ < scan_context_->results->key_values_size()) {
             return true;
         }
         ScanSessionReset();
-        StatusCode status = tablet_scanner_->Scan(scan_options, scan_context, scan_stats_);
+        StatusCode status = tablet_scanner_->Scan(scan_context_->scan_options,
+                                                  scan_context_, scan_stats_);
         if (status != kTabletOk) {
-            LOG(ERROR) << "fail to scan: " << scan_context->start_user_key
-                << ", " << scan_context->end_user_key;
+            LOG(ERROR) << "fail to scan: " << scan_context_->start_user_key
+                << ", " << scan_context_->end_user_key;
             return false;
         }
     }
@@ -90,6 +92,10 @@ bool ResultStreamImpl::Done(ErrorCode* err) {
 
 void ResultStreamImpl::Next() {
     next_idx_++;
+}
+
+void ResultStreamImpl::ScanSessionReset() {
+
 }
 
 std::string ResultStreamImpl::RowName() const {
@@ -130,13 +136,13 @@ void ResultStreamImpl::FillScanOptions(ScanDescImpl* desc_impl,
     scan_options->max_versions = desc_impl->GetMaxVersion();
     scan_options->max_size = desc_impl->GetBufferSize();
     scan_options->number_limit = desc_impl->GetNumberLimit();
-    scan_options->timestamp_start = desc_impl->GetStartTimeStamp()
-    scan_options->snapshot_id; = desc_impl->GetSnapshot();
+    scan_options->timestamp_start = desc_impl->GetStartTimeStamp();
+//     scan_options->snapshot_id; = desc_impl->GetSnapshot();
 }
 
 ///////////////////////// ScanDescImpl ///////////////////////
 
-ScanDescImpl::ScanDescImpl(const string& rowkey)
+ScanDescImpl::ScanDescImpl(const std::string& rowkey)
     : start_timestamp_(0),
       timer_range_(NULL),
       buf_size_(FLAGS_xsheet_sdk_scan_buffer_size),
@@ -145,6 +151,7 @@ ScanDescImpl::ScanDescImpl(const string& rowkey)
       max_version_(1),
       pack_interval_(FLAGS_xsheet_sdk_scan_timeout),
       snapshot_(0) {
+    timer_range_ = new xsheet::TimeRange;
     SetStart(rowkey);
 }
 
@@ -157,8 +164,8 @@ ScanDescImpl::~ScanDescImpl() {
     }
 }
 
-void ScanDescImpl::SetStart(const string& row_key, const string& column_family,
-                            const string& qualifier, int64_t time_stamp)
+void ScanDescImpl::SetStart(const std::string& row_key, const std::string& column_family,
+                            const std::string& qualifier, int64_t time_stamp)
 {
     start_key_ = row_key;
     start_column_family_ = column_family;
@@ -166,27 +173,27 @@ void ScanDescImpl::SetStart(const string& row_key, const string& column_family,
     start_timestamp_ = time_stamp;
 }
 
-void ScanDescImpl::SetEnd(const string& rowkey) {
+void ScanDescImpl::SetEnd(const std::string& rowkey) {
     end_key_ = rowkey;
 }
 
-void ScanDescImpl::AddColumnFamily(const string& cf) {
+void ScanDescImpl::AddColumnFamily(const std::string& cf) {
     AddColumn(cf, "");
 }
 
-void ScanDescImpl::AddColumn(const string& cf, const string& qualifier) {
+void ScanDescImpl::AddColumn(const std::string& cf, const std::string& qualifier) {
     for (uint32_t i = 0; i < cf_list_.size(); ++i) {
-        if (cf_list_[i]->family_name() == cf) {
+        if (cf_list_[i]->family_name == cf) {
             if (qualifier != "") {
-                cf_list_[i]->add_qualifier_list(qualifier);
+                cf_list_[i]->qualifier_list.push_back(qualifier);
             }
             return;
         }
     }
-    tera::ColumnFamily* column_family = new tera::ColumnFamily;
-    column_family->set_family_name(cf);
+    ColumnFamily* column_family = new ColumnFamily;
+    column_family->family_name = cf;
     if (qualifier != "") {
-        column_family->add_qualifier_list(qualifier);
+        column_family->qualifier_list.push_back(qualifier);
     }
     cf_list_.push_back(column_family);
 }
@@ -201,7 +208,7 @@ void ScanDescImpl::SetPackInterval(int64_t interval) {
 
 void ScanDescImpl::SetTimeRange(int64_t ts_end, int64_t ts_start) {
     if (timer_range_ == NULL) {
-        timer_range_ = new tera::TimeRange;
+        timer_range_ = new xsheet::TimeRange;
     }
     timer_range_->set_ts_start(ts_start);
     timer_range_->set_ts_end(ts_end);
@@ -227,19 +234,19 @@ void ScanDescImpl::SetAsync(bool async) {
     is_async_ = async;
 }
 
-const string& ScanDescImpl::GetStartRowKey() const {
+const std::string& ScanDescImpl::GetStartRowKey() const {
     return start_key_;
 }
 
-const string& ScanDescImpl::GetEndRowKey() const {
+const std::string& ScanDescImpl::GetEndRowKey() const {
     return end_key_;
 }
 
-const string& ScanDescImpl::GetStartColumnFamily() const {
+const std::string& ScanDescImpl::GetStartColumnFamily() const {
     return start_column_family_;
 }
 
-const string& ScanDescImpl::GetStartQualifier() const {
+const std::string& ScanDescImpl::GetStartQualifier() const {
     return start_qualifier_;
 }
 
@@ -247,16 +254,16 @@ int64_t ScanDescImpl::GetStartTimeStamp() const {
     return start_timestamp_;
 }
 
-int32_t ScanDescImpl::GetSizeofColumnFamilyList() const {
-    return cf_list_.size();
-}
+// int32_t ScanDescImpl::GetSizeofColumnFamilyList() const {
+//     return cf_list_.size();
+// }
 
-const tera::ColumnFamily* ScanDescImpl::GetColumnFamily(int32_t num) const {
-    if (static_cast<uint64_t>(num) >= cf_list_.size()) {
-        return NULL;
-    }
-    return cf_list_[num];
-}
+// const ScanDescImpl::ColumnFamily* ScanDescImpl::GetColumnFamily(int32_t num) const {
+//     if (static_cast<uint64_t>(num) >= cf_list_.size()) {
+//         return NULL;
+//     }
+//     return cf_list_[num];
+// }
 
 int32_t ScanDescImpl::GetMaxVersion() const {
     return max_version_;
@@ -266,21 +273,21 @@ int64_t ScanDescImpl::GetPackInterval() const {
     return pack_interval_;
 }
 
-const tera::TimeRange* ScanDescImpl::GetTimerRange() const {
-    return timer_range_;
-}
+// const xsheet::TimeRange* ScanDescImpl::GetTimerRange() const {
+//     return timer_range_;
+// }
 
-const string& ScanDescImpl::GetFilterString() const {
-    return filter_string_;
-}
+// const std::string& ScanDescImpl::GetFilterString() const {
+//     return filter_string_;
+// }
 
-const FilterList& ScanDescImpl::GetFilterList() const {
-    return filter_list_;
-}
+// const FilterList& ScanDescImpl::GetFilterList() const {
+//     return filter_list_;
+// }
 
-const ValueConverter ScanDescImpl::GetValueConverter() const {
-    return value_converter_;
-}
+// const ValueConverter ScanDescImpl::GetValueConverter() const {
+//     return value_converter_;
+// }
 
 int64_t ScanDescImpl::GetBufferSize() const {
     return buf_size_;
@@ -290,17 +297,17 @@ int64_t ScanDescImpl::GetNumberLimit() {
     return number_limit_;
 }
 
-bool ScanDescImpl::IsAsync() const {
-    return is_async_;
-}
+// bool ScanDescImpl::IsAsync() const {
+//     return is_async_;
+// }
 
-void ScanDescImpl::SetTableSchema(const TableSchema& schema) {
-    table_schema_ = schema;
-}
+// void ScanDescImpl::SetTableSchema(const TabletSchema& schema) {
+//     tablet_schema_ = schema;
+// }
 
-bool ScanDescImpl::IsKvOnlyTable() {
-    return IsKvTable(table_schema_);
-}
+// bool ScanDescImpl::IsKvOnlyTable() {
+//     return IsKvTable(table_schema_);
+// }
 
 // SELECT * WHERE <type> <cf0> <op0> <value0> AND <type> <cf1> <op1> <value1>
 bool ScanDescImpl::SetFilter(const std::string& schema) {
@@ -311,7 +318,7 @@ bool ScanDescImpl::SetFilter(const std::string& schema) {
         LOG(ERROR) << "illegal scan expression: should be begin with \"SELECT\"";
         return false;
     }
-    if ((pos = schema.find(" WHERE ")) != string::npos) {
+    if ((pos = schema.find(" WHERE ")) != std::string::npos) {
         select = schema.substr(7, pos - 7);
         where = schema.substr(pos + 7, schema.size() - pos - 7);
     } else {
@@ -319,10 +326,10 @@ bool ScanDescImpl::SetFilter(const std::string& schema) {
     }
     // parse select
     {
-        select = RemoveInvisibleChar(select);
+//         select = RemoveInvisibleChar(select);
         if (select != "*") {
-            std::vector<string> cfs;
-            SplitString(select, ",", &cfs);
+            std::vector<std::string> cfs;
+            toft::SplitString(select, ",", &cfs);
             for (size_t i = 0; i < cfs.size(); ++i) {
                 // add columnfamily
                 AddColumnFamily(cfs[i]);
@@ -332,127 +339,107 @@ bool ScanDescImpl::SetFilter(const std::string& schema) {
     }
     // parse where
     if (where != "") {
-        filter_string_ = where;
-        if (!ParseFilterString()) {
-            return false;
-        }
+//         filter_string_ = where;
+//         if (!ParseFilterString()) {
+//             return false;
+//         }
     }
     return true;
 }
 
-bool ScanDescImpl::ParseFilterString() {
-    const char* and_op = " AND ";
-    filter_list_.Clear();
-    std::vector<string> filter_v;
-    SplitString(filter_string_, and_op, &filter_v);
-    for (size_t i = 0; i < filter_v.size(); ++i) {
-        Filter filter;
-        if (ParseSubFilterString(filter_v[i], &filter)) {
-            Filter* pf = filter_list_.add_filter();
-            pf->CopyFrom(filter);
-        } else {
-            LOG(ERROR) << "fail to parse expression: " << filter_v[i];
-            return false;
-        }
-    }
 
-    return true;
-}
+// bool ScanDescImpl::ParseSubFilterString(const std::string& filter_str,
+//                                         Filter* filter) {
+//     std::string filter_t = RemoveInvisibleChar(filter_str);
+//     if (filter_t.size() < 3) {
+//         LOG(ERROR) << "illegal filter expression: " << filter_t;
+//         return false;
+//     }
+//     if (filter_t.find("@") == std::string::npos) {
+//         if (!ParseValueCompareFilter(filter_t, filter)) {
+//             return false;
+//         }
+//     } else {
+//         LOG(ERROR) << "illegal filter expression: " << filter_t;
+//         return false;
+//     }
+//     return true;
+// }
 
-bool ScanDescImpl::ParseSubFilterString(const string& filter_str,
-                                        Filter* filter) {
-    string filter_t = RemoveInvisibleChar(filter_str);
-    if (filter_t.size() < 3) {
-        LOG(ERROR) << "illegal filter expression: " << filter_t;
-        return false;
-    }
-    if (filter_t.find("@") == string::npos) {
-        // default filter, value compare filter
-        if (!ParseValueCompareFilter(filter_t, filter)) {
-            return false;
-        }
-    } else {
-        // TODO: other filter
-        LOG(ERROR) << "illegal filter expression: " << filter_t;
-        return false;
-    }
-    return true;
-}
+// bool ScanDescImpl::ParseValueCompareFilter(const std::string& filter_str,
+//                                            Filter* filter) {
+//     if (filter == NULL) {
+//         LOG(ERROR) << "filter ptr is NULL.";
+//         return false;
+//     }
 
-bool ScanDescImpl::ParseValueCompareFilter(const string& filter_str,
-                                           Filter* filter) {
-    if (filter == NULL) {
-        LOG(ERROR) << "filter ptr is NULL.";
-        return false;
-    }
+//     if (max_version_ != 1) {
+//         LOG(ERROR) << "only support 1 version scan if there is a value filter: "
+//             << filter_str;
+//         return false;
+//     }
+//     std::string::size_type type_pos;
+//     std::string::size_type cf_pos;
+//     if ((type_pos = filter_str.find("int64")) != std::string::npos) {
+//         filter->set_value_type(kINT64);
+//         cf_pos = type_pos + 5;
+//     } else {
+//         LOG(ERROR) << "only support int64 value filter, but got: "
+//             << filter_str;
+//         return false;
+//     }
 
-    if (max_version_ != 1) {
-        LOG(ERROR) << "only support 1 version scan if there is a value filter: "
-            << filter_str;
-        return false;
-    }
-    string::size_type type_pos;
-    string::size_type cf_pos;
-    if ((type_pos = filter_str.find("int64")) != string::npos) {
-        filter->set_value_type(kINT64);
-        cf_pos = type_pos + 5;
-    } else {
-        LOG(ERROR) << "only support int64 value filter, but got: "
-            << filter_str;
-        return false;
-    }
+//     std::string cf_name, value;
+//     std::string::size_type op_pos;
+//     BinCompOp comp_op = UNKNOWN;
+//     if ((op_pos = filter_str.find(">=")) != std::string::npos) {
+//         cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
+//         value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
+//         comp_op = GE;
+//     } else if ((op_pos = filter_str.find(">")) != std::string::npos) {
+//         cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
+//         value = filter_str.substr(op_pos + 1, filter_str.size() - op_pos - 1);
+//         comp_op = GT;
+//     } else if ((op_pos = filter_str.find("<=")) != std::string::npos) {
+//         cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
+//         value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
+//         comp_op = LE;
+//     } else if ((op_pos = filter_str.find("<")) != std::string::npos) {
+//         cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
+//         value = filter_str.substr(op_pos + 1, filter_str.size() - op_pos - 1);
+//         comp_op = LT;
+//     } else if ((op_pos = filter_str.find("==")) != std::string::npos) {
+//         cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
+//         value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
+//         comp_op = EQ;
+//     } else if ((op_pos = filter_str.find("!=")) != std::string::npos) {
+//         cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
+//         value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
+//         comp_op = NE;
+//     } else {
+//         LOG(ERROR) << "fail to parse expression: " << filter_str;
+//         return false;
+//     }
+//     std::string type;
+//     if (filter->value_type() == kINT64) {
+//         type = "int64";
+//     } else {
+//         assert(false);
+//     }
 
-    string cf_name, value;
-    string::size_type op_pos;
-    BinCompOp comp_op = UNKNOWN;
-    if ((op_pos = filter_str.find(">=")) != string::npos) {
-        cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
-        value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
-        comp_op = GE;
-    } else if ((op_pos = filter_str.find(">")) != string::npos) {
-        cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
-        value = filter_str.substr(op_pos + 1, filter_str.size() - op_pos - 1);
-        comp_op = GT;
-    } else if ((op_pos = filter_str.find("<=")) != string::npos) {
-        cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
-        value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
-        comp_op = LE;
-    } else if ((op_pos = filter_str.find("<")) != string::npos) {
-        cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
-        value = filter_str.substr(op_pos + 1, filter_str.size() - op_pos - 1);
-        comp_op = LT;
-    } else if ((op_pos = filter_str.find("==")) != string::npos) {
-        cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
-        value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
-        comp_op = EQ;
-    } else if ((op_pos = filter_str.find("!=")) != string::npos) {
-        cf_name = filter_str.substr(cf_pos, op_pos - cf_pos);
-        value = filter_str.substr(op_pos + 2, filter_str.size() - op_pos - 2);
-        comp_op = NE;
-    } else {
-        LOG(ERROR) << "fail to parse expression: " << filter_str;
-        return false;
-    }
-    string type;
-    if (filter->value_type() == kINT64) {
-        type = "int64";
-    } else {
-        assert(false);
-    }
+//     std::string value_internal;
+//     if (!value_converter_(value, type, &value_internal)) {
+//         LOG(ERROR) << "fail to convert value: \""<< value << "\"(" << type << ")";
+//         return false;
+//     }
 
-    string value_internal;
-    if (!value_converter_(value, type, &value_internal)) {
-        LOG(ERROR) << "fail to convert value: \""<< value << "\"(" << type << ")";
-        return false;
-    }
-
-    filter->set_type(BinComp);
-    filter->set_bin_comp_op(comp_op);
-    filter->set_field(ValueFilter);
-    filter->set_content(cf_name);
-    filter->set_ref_value(value_internal);
-    return true;
-}
+//     filter->set_type(BinComp);
+//     filter->set_bin_comp_op(comp_op);
+//     filter->set_field(ValueFilter);
+//     filter->set_content(cf_name);
+//     filter->set_ref_value(value_internal);
+//     return true;
+// }
 
 } // namespace xsheet
 

@@ -39,17 +39,17 @@ void ScanDescriptor::SetTimeRange(int64_t ts_end, int64_t ts_start) {
     impl_->SetTimeRange(ts_end, ts_start);
 }
 
-bool ScanDescriptor::SetFilter(const std::string& filter_string) {
-    return impl_->SetFilter(filter_string);
-}
+// bool ScanDescriptor::SetFilter(const std::string& filter_string) {
+//     return impl_->SetFilter(filter_string);
+// }
 
-void ScanDescriptor::SetValueConverter(ValueConverter converter) {
-    impl_->SetValueConverter(converter);
-}
+// void ScanDescriptor::SetValueConverter(ValueConverter converter) {
+//     impl_->SetValueConverter(converter);
+// }
 
-void ScanDescriptor::SetSnapshot(uint64_t snapshot_id) {
-    return impl_->SetSnapshot(snapshot_id);
-}
+// void ScanDescriptor::SetSnapshot(uint64_t snapshot_id) {
+//     return impl_->SetSnapshot(snapshot_id);
+// }
 
 void ScanDescriptor::SetBufferSize(int64_t buf_size) {
     impl_->SetBufferSize(buf_size);
@@ -63,17 +63,17 @@ int64_t ScanDescriptor::GetNumberLimit() {
     return impl_->GetNumberLimit();
 }
 
-void ScanDescriptor::SetAsync(bool async) {
-    impl_->SetAsync(async);
-}
+// void ScanDescriptor::SetAsync(bool async) {
+//     impl_->SetAsync(async);
+// }
 
-bool ScanDescriptor::IsAsync() const {
-    return impl_->IsAsync();
-}
+// bool ScanDescriptor::IsAsync() const {
+//     return impl_->IsAsync();
+// }
 
-ScanDescImpl* ScanDescriptor::GetImpl() const {
-    return impl_;
-}
+// ScanDescImpl* ScanDescriptor::GetImpl() const {
+//     return impl_;
+// }
 
 } // namespace xsheet
 

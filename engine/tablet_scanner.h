@@ -81,6 +81,8 @@ public:
                     ScanContext* scan_context,
                     ScanStats* scan_stats);
 
+    TabletSchema GetTabletSchema() { return  tablet_schema_; }
+
 private:
     StatusCode ScanImpl(const ScanOptions& scan_options,
                         ScanContext* scan_context,

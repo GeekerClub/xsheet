@@ -20,6 +20,12 @@ cc_library(
 #         'table_impl.cc',
         'read_impl.cc',
         'mutate_impl.cc'
+    ],
+    deps = [
+        ':schema_utils',
+        '//proto:tablet_proto',
+        '//engine:tablet_writer',
+        '//engine:tablet_scanner'
     ]
 )
 
