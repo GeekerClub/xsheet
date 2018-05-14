@@ -8,13 +8,14 @@
 
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #include "xsheet/error_code.h"
 #include "xsheet/mutation.h"
 
 namespace xsheet {
 
-class RowMutationImpl {
+class RowMutationImpl : public RowMutation {
 public:
     RowMutationImpl();
     virtual ~RowMutationImpl();

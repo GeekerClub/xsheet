@@ -17,7 +17,9 @@ cc_library(
         'sdk_flags.cc',
         'scan.cc',
         'scan_impl.cc',
-        'table_impl.cc'
+#         'table_impl.cc',
+        'read_impl.cc',
+        'mutate_impl.cc'
     ]
 )
 

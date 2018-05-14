@@ -15,7 +15,7 @@
 #include "toft/system/threading/thread.h"
 
 #include "engine/tablet_scanner.h"
-#include "types.h"
+#include "engine/types.h"
 
 
 namespace xsheet {

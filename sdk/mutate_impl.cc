@@ -69,7 +69,7 @@ void RowMutationImpl::SetCallBack(Callback callback) {
 
 }
 
-Callback RowMutationImpl::GetCallBack() {
+RowMutation::Callback RowMutationImpl::GetCallBack() {
     return callback_;
 }
 
