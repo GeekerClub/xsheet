@@ -28,6 +28,13 @@ int32_t CreateOp(int argc, char* argv[]) {
     } else {
         table_name = argv[2];
     }
+
+    if (!toft::IsExist(FLAGS_xsheet_test_dir)
+        && toft::CreateDirWithRetry(FLAGS_xsheet_test_dir)) {
+        LOG(ERROR) << "fail to create work dir: " << FLAGS_xsheet_test_dir;
+        return -1;
+    }
+
 }
 
 int32_t WriteOp() {
