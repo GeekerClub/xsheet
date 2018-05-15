@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "toft/base/scoped_ptr.h"
+#include "toft/system/threading/event.h"
 
-// #include "proto/tablet.pb.h"
 #include "proto/status_code.pb.h"
 #include "engine/tablet_schema.pb.h"
 #include "engine/kvbase/kv_base.h"
@@ -40,6 +40,9 @@ public:
     StatusCode Get(const std::string& row_key, const std::string& family,
                    const std::string& qualifier, std::string* value);
 
+private:
+    void PutCallback(std::vector<const RowMutationSequence*>* row_mutation_vec,
+                     std::vector<StatusCode>* status_vec);
 
 private:
     std::string db_path_;
@@ -48,6 +51,8 @@ private:
 
     toft::scoped_ptr<TabletWriter> writer_;
     toft::scoped_ptr<TabletScanner> scanner_;
+
+    toft::AutoResetEvent put_event_;
 };
 
 } // namespace xsheet
