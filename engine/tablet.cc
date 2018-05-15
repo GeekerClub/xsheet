@@ -78,6 +78,7 @@ StatusCode Tablet::Get(const std::string& row_key, const std::string& family,
 void Tablet::PutCallback(std::vector<const RowMutationSequence*>* row_mutation_vec,
                          std::vector<StatusCode>* status_vec) {
     LOG(INFO) << "PutCallback()";
+    delete row_mutation_vec[0];
     put_event_.Set();
 }
 
