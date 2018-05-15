@@ -22,11 +22,11 @@ Tablet::Tablet(const std::string& db_path, const TabletSchema& schema)
     writer_.reset(new TabletWriter(schema_, kvbase_.get()));
     scanner_.reset(new TabletScanner(schema_, kvbase_.get()));
 
-    writer_.Start();
+    writer_->Start();
 }
 
 Tablet::~Tablet() {
-    writer_.Stop();
+    writer_->Stop();
 }
 
 StatusCode Tablet::Write(std::vector<const RowMutationSequence*>* row_mutation_vec,
@@ -71,6 +71,22 @@ StatusCode Tablet::Put(const std::string& row_key, const std::string& family,
 
 StatusCode Tablet::Get(const std::string& row_key, const std::string& family,
                const std::string& qualifier, std::string* value) {
+    ScanOptions scan_options;
+    scan_options.column_family_list[family].insert(qualifier);
+
+    ScanContext scan_context;
+    scan_context.start_user_key = row_key;
+
+    ScanStats scan_stats;
+
+    StatusCode status = scanner_->Scan(scan_options, &scan_context, &scan_stats);
+    if (status != kTabletOk) {
+        LOG(ERROR) << "fail to scan: " << row_key;
+        return status;
+    }
+    CHECK(scan_context.results);
+    const KeyValuePair& pair = scan_context.results->key_values(0);
+    *value = std::string(pair.value().data(), pair.value().size());
     return kTabletOk;
 
 }
@@ -78,7 +94,7 @@ StatusCode Tablet::Get(const std::string& row_key, const std::string& family,
 void Tablet::PutCallback(std::vector<const RowMutationSequence*>* row_mutation_vec,
                          std::vector<StatusCode>* status_vec) {
     LOG(INFO) << "PutCallback()";
-    delete row_mutation_vec[0];
+    delete (*row_mutation_vec)[0];
     put_event_.Set();
 }
 
