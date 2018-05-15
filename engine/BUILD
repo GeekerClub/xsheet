@@ -56,6 +56,21 @@ cc_library(
     ]
 )
 
+cc_library(
+    name = 'tablet',
+    srcs = [
+        'tablet.cc'
+    ],
+    deps = [
+        ':tablet_schema_proto',
+        ':tablet_writer',
+        ':tablet_scanner',
+        '//engine/kvbase:kvbase',
+        '//toft/storage/path:path',
+        '//thirdparty/glog:glog'
+    ]
+)
+
 cc_test(
     name = 'tablet_writer_test',
     srcs = 'tablet_writer_test.cc',

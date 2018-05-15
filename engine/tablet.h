@@ -6,18 +6,26 @@
 #ifndef XSHEET_ENGINE_TABLET_H
 #define XSHEET_ENGINE_TABLET_H
 
+#include <vector>
 
-#include "proto/tablet.pb.h"
+#include "toft/base/scoped_ptr.h"
+
+// #include "proto/tablet.pb.h"
 #include "proto/status_code.pb.h"
+#include "engine/tablet_schema.pb.h"
+#include "engine/kvbase/kv_base.h"
+
+#include "engine/tablet_writer.h"
+#include "engine/tablet_scanner.h"
 
 namespace xsheet {
 
-class TabletWriter;
-class TabletScanner;
+// class TabletWriter;
+// class TabletScanner;
 
 class Tablet {
 public:
-    Tablet(const std::string& db_path);
+    Tablet(const std::string& db_path, const TabletSchema& schema);
     ~Tablet();
 
     StatusCode Write(std::vector<const RowMutationSequence*>* row_mutation_vec,
@@ -35,11 +43,11 @@ public:
 
 private:
     std::string db_path_;
-    KvBase kvbase_;
     TabletSchema schema_;
+    toft::scoped_ptr<KvBase> kvbase_;
 
-    TabletWriter writer_;
-    TabletScanner scanner_;
+    toft::scoped_ptr<TabletWriter> writer_;
+    toft::scoped_ptr<TabletScanner> scanner_;
 };
 
 } // namespace xsheet
