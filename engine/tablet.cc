@@ -70,13 +70,13 @@ StatusCode Tablet::Put(const std::string& row_key, const std::string& family,
 }
 
 StatusCode Tablet::Get(const std::string& row_key, const std::string& family,
-               const std::string& qualifier, std::string* value) {
+                       const std::string& qualifier, std::string* value) {
     ScanOptions scan_options;
     scan_options.column_family_list[family].insert(qualifier);
 
     ScanContext scan_context;
     scan_context.start_user_key = row_key;
-
+    scan_context.results = new RowResult;
     ScanStats scan_stats;
 
     StatusCode status = scanner_->Scan(scan_options, &scan_context, &scan_stats);
@@ -84,9 +84,14 @@ StatusCode Tablet::Get(const std::string& row_key, const std::string& family,
         LOG(ERROR) << "fail to scan: " << row_key;
         return status;
     }
-    CHECK(scan_context.results);
+    if (!scan_context.results
+        || scan_context.results->key_values_size() <= 0) {
+        LOG(ERROR) << "no result back";
+        return status;
+    }
     const KeyValuePair& pair = scan_context.results->key_values(0);
     *value = std::string(pair.value().data(), pair.value().size());
+    delete scan_context.results;
     return kTabletOk;
 
 }

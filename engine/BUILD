@@ -80,3 +80,12 @@ cc_test(
         '//thirdparty/gtest:gtest'
     ]
 )
+
+cc_test(
+    name = 'tablet_test',
+    srcs = 'tablet_test.cc',
+    deps = [
+        ':tablet',
+        '//thirdparty/gtest:gtest'
+    ]
+)
