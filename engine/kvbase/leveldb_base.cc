@@ -52,12 +52,15 @@ void LevelIterator::Prev() {
 }
 
 toft::StringPiece LevelIterator::Key() const {
-    return ldb_iter_->key().data();
+    toft::StringPiece sp(ldb_iter_->key().data(),
+                         ldb_iter_->key().size());
+    return sp;
 }
 
 toft::StringPiece LevelIterator::Value() const {
-    return ldb_iter_->value().data();
-
+    toft::StringPiece sp(ldb_iter_->value().data(),
+                         ldb_iter_->value().size());
+    return sp;
 }
 
 StatusCode LevelIterator::Status() const {
@@ -130,7 +133,14 @@ void LevelBase::SetupOptions(const ReadOptions& x, leveldb::ReadOptions* l) {
 }
 
 void LevelBase::SetupBatchUpdates(WriteBatch* updates, leveldb::WriteBatch* ldb_updates) {
-
+    std::vector<KeyValuePair>::iterator it = updates->key_value_list_.begin();
+    for (; it != updates->key_value_list_.end(); ++it) {
+        if (it->del()) {
+            ldb_updates->Delete(it->key());
+        } else {
+            ldb_updates->Put(it->key(), it->value());
+        }
+    }
 }
 
 // BaseSystem
