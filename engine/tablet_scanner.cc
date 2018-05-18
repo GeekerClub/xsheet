@@ -37,7 +37,10 @@ StatusCode TabletScanner::Scan(const ScanOptions& scan_options,
     scan_stats->read_row_count = 0;
     scan_stats->read_bytes = 0;
     scan_context->completed = false;
-    return ScanImpl(scan_options, scan_context, scan_stats);
+    StatusCode status = ScanImpl(scan_options, scan_context, scan_stats);
+    delete scan_context->it;
+    delete scan_context->drop_checker;
+    return status;
 }
 
 StatusCode TabletScanner::ScanImpl(const ScanOptions& scan_options,

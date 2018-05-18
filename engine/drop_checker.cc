@@ -35,6 +35,8 @@ bool DropChecker::DropCheck(toft::StringPiece raw_key, KeyValuePair* row_record)
     int64_t ts = -1;
     RawKeyType type;
 
+    is_drop_ = true;
+
     if (!key_operator_->ExtractRawKey(raw_key, &key, &col, &qual, &ts, &type)) {
         LOG(WARNING) << "invalid tera key: " << DebugString(raw_key.as_string());
         return false;
