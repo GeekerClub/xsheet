@@ -37,3 +37,17 @@ cc_test(
         '//thirdparty/gtest:gtest'
     ]
 )
+
+cc_binary(
+    name = 'cli_main',
+    srcs = [
+        'cli_main.cc'
+    ],
+    deps = [
+        ':table',
+        '//engine:tablet',
+        '//thirdparty/glog:glog',
+        '//thirdparty/gflags:gflags'
+    ]
+)
+
