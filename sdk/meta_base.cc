@@ -6,6 +6,9 @@
 
 #include "sdk/meta_base.h"
 
+
+#include "thirdparty/glog/logging.h"
+
 #include "proto/status_code.pb.h"
 
 namespace xsheet {
@@ -40,6 +43,11 @@ bool MetaBase::Get(const std::string& db_path, TabletSchema* schema) {
         LOG(ERROR) << "fail to read db: " << db_path_;
         return false;
     }
+    if (!schema->ParseFromString(value)) {
+        LOG(ERROR) << "fail to parse pb from string";
+        return false;
+    }
+    return true;
 }
 
 } // namespace xsheet
