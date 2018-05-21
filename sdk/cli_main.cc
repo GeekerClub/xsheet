@@ -37,15 +37,15 @@ int32_t CreateOp(int argc, char* argv[]) {
     }
 
     if (!toft::IsExist(FLAGS_xsheet_test_dir)
-        && toft::CreateDirWithRetry(FLAGS_xsheet_test_dir)) {
+        && !toft::CreateDirWithRetry(FLAGS_xsheet_test_dir)) {
         LOG(ERROR) << "fail to create work dir: " << FLAGS_xsheet_test_dir;
         return -1;
     }
     std::string db_path = db_prefix + FLAGS_xsheet_test_dir + "/" + table_name;
 
     TabletSchema schema;
-    if (!ParseTableSchemaFile(argv[2], &schema)) {
-        LOG(ERROR) << "fail to parse schema file: " << argv[2];
+    if (!ParseTableSchemaFile(argv[3], &schema)) {
+        LOG(ERROR) << "fail to parse schema file: " << argv[3];
         return -1;
     }
 
