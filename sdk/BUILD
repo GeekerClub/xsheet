@@ -41,7 +41,8 @@ cc_test(
 cc_binary(
     name = 'cli_main',
     srcs = [
-        'cli_main.cc'
+        'cli_main.cc',
+        'meta_base.cc'
     ],
     deps = [
         ':table',

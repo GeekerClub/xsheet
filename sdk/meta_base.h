@@ -9,8 +9,9 @@
 
 #include "toft/base/scoped_ptr.h"
 
-#include "engine/kvbase/kv_base.h"
 #include "engine/kvbase/base_options.h"
+#include "engine/kvbase/kv_base.h"
+#include "engine/tablet_schema.pb.h"
 
 namespace xsheet {
 
@@ -20,7 +21,7 @@ public:
     ~MetaBase();
 
     bool Put(const std::string& db_path, const TabletSchema& schema);
-    TabletSchema Get(const std::string& db_path);
+    bool Get(const std::string& db_path, TabletSchema* schema);
 
 private:
     std::string db_path_;

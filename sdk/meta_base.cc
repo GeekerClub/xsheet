@@ -33,7 +33,7 @@ bool MetaBase::Put(const std::string& db_path, const TabletSchema& schema) {
         LOG(ERROR) << "fail to write db: " << db_path_;
         return false;
     }
-    retun true;
+    return true;
 }
 
 bool MetaBase::Get(const std::string& db_path, TabletSchema* schema) {
