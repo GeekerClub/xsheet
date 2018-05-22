@@ -66,6 +66,7 @@ uint64_t StringToUint64(const std::string& int_str, int base = 10);
 std::string DebugString(const std::string& src);
 bool ParseDebugString(const std::string& src, std::string* dst);
 
+int EditDistance(const std::string& a, const std::string& b);
 
 }  // namespace xsheet
 
