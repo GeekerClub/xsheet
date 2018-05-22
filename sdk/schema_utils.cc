@@ -276,10 +276,15 @@ bool FillTabletSchema(PropTree& schema_tree, TabletSchema* tablet_schema) {
         // simple table mode, have 1 default lg
         // e.g. table1{cf1, cf2, cf3}
 
-        ColumnFamilySchema* cf_schema = tablet_schema->add_column_families();
+        const std::string default_lg = "default";
+        LocalityGroupSchema* lg_schema = tablet_schema->add_locality_groups();
+        lg_schema->set_name(default_lg);
+
         for (size_t i = 0; i < table_node->children_.size(); ++i) {
             PropTree::Node* cf_node = table_node->children_[i];
-
+            ColumnFamilySchema* cf_schema = tablet_schema->add_column_families();
+            cf_schema->set_name(cf_node->name_);
+            cf_schema->set_locality_group(default_lg);
             for (std::map<std::string, std::string>::iterator it = cf_node->properties_.begin();
                  it != cf_node->properties_.end(); ++it) {
                 if (!SetCfProperties(it->first, it->second, cf_schema)) {

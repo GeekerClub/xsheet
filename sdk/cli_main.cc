@@ -164,6 +164,7 @@ int32_t CreateOp(MetaBase* meta_base, int argc, char* argv[]) {
         LOG(ERROR) << "fail to parse schema file: " << argv[2];
         return -1;
     }
+    VLOG(10) << "parse from file: " << schema.DebugString();
 //     std::string db_path = FLAGS_xsheet_kvbase_prefix + FLAGS_xsheet_workspace_dir
 //         + "/" + schema.name();
 
@@ -183,6 +184,7 @@ int32_t WriteOp(MetaBase* meta_base, int argc, char* argv[]) {
         LOG(ERROR) << "tablet not exist: " << tablename;
         return -1;
     }
+    LOG(INFO) << "get db schema: " << tablet_schema.DebugString();
     std::string db_path = FLAGS_xsheet_kvbase_prefix + FLAGS_xsheet_workspace_dir
         + "/" + tablename;
     Tablet table(db_path, tablet_schema);
