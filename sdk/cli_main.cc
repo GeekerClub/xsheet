@@ -231,16 +231,12 @@ int32_t ReadOp(MetaBase* meta_base, int argc, char* argv[]) {
     std::string qualifier = "";
     std::string value;
     if (argc == 5) {
-        // use table as kv
-        value = argv[4];
-    } else if (argc == 6) {
         ParseCfQualifier(argv[4], &columnfamily, &qualifier);
-        value = argv[5];
     }
 
     StatusCode status = table.Get(rowkey, columnfamily, qualifier, &value);
     if (status != kBaseOk) {
-        LOG(ERROR) << "fail to get data";
+        LOG(ERROR) << "fail to get data, status: " << StatusCode_Name(status);
         return -1;
     }
 

@@ -92,7 +92,7 @@ StatusCode Tablet::Get(const std::string& row_key, const std::string& family,
     const KeyValuePair& pair = scan_context.results->key_values(0);
     *value = std::string(pair.value().data(), pair.value().size());
     delete scan_context.results;
-    return kTabletOk;
+    return kBaseOk;
 
 }
 
