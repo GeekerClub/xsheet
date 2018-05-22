@@ -164,10 +164,10 @@ int32_t CreateOp(MetaBase* meta_base, int argc, char* argv[]) {
         LOG(ERROR) << "fail to parse schema file: " << argv[2];
         return -1;
     }
-    std::string db_path = FLAGS_xsheet_kvbase_prefix + FLAGS_xsheet_workspace_dir
-        + "/" + schema.name();
+//     std::string db_path = FLAGS_xsheet_kvbase_prefix + FLAGS_xsheet_workspace_dir
+//         + "/" + schema.name();
 
-    return meta_base->Put(db_path, schema)?0:-1;
+    return meta_base->Put(schema.name(), schema)?0:-1;
 }
 
 int32_t WriteOp(MetaBase* meta_base, int argc, char* argv[]) {
@@ -201,7 +201,7 @@ int32_t WriteOp(MetaBase* meta_base, int argc, char* argv[]) {
 
     StatusCode status = table.Put(rowkey, columnfamily, qualifier, value);
     if (status != kBaseOk) {
-        LOG(ERROR) << "fail to put data";
+        LOG(ERROR) << "fail to put data, status: " << StatusCode_Name(status);
         return -1;
     }
     return 0;
