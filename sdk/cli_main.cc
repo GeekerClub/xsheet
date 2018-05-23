@@ -124,7 +124,7 @@ static void PrintUnknownCmdHelpInfo(const char* msg) {
 }
 
 
-int32_t HelpOp(int32_t argc, char* argv[]) {
+int32_t HelpOp(MetaBase* meta_base, int32_t argc, char* argv[]) {
     if (argc == 2) {
         PrintAllCmd();
     } else if (argc == 3) {
@@ -133,6 +133,10 @@ int32_t HelpOp(int32_t argc, char* argv[]) {
         PrintCmdHelpInfo("help");
     }
     return 0;
+}
+
+int32_t HelpOp(int32_t argc, char* argv[]) {
+    return HelpOp(NULL, argc, argv);
 }
 
 void ParseCfQualifier(const std::string& input, std::string* columnfamily,
@@ -283,6 +287,7 @@ static void InitializeCommandTable(){
     command_table["show"] = xsheet::ShowOp;
     command_table["put"] = xsheet::PutOp;
     command_table["get"] = xsheet::GetOp;
+    command_table["help"] = xsheet::HelpOp;
 }
 
 void PrintSystemVersion() {
@@ -307,6 +312,7 @@ int32_t ExecuteCommand(xsheet::MetaBase* meta_base, int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
+    FLAGS_minloglevel = 2;
     ::google::ParseCommandLineFlags(&argc, &argv, true);
 
     if (argc > 1 && std::string(argv[1]) == "help") {
