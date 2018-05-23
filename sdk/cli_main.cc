@@ -18,6 +18,8 @@
 #include "thirdparty/readline/history.h"
 #include "thirdparty/readline/readline.h"
 #include "toft/base/scoped_ptr.h"
+#include "toft/base/string/algorithm.h"
+#include "toft/base/string/number.h"
 #include "toft/storage/path/path_ext.h"
 
 // #include "sdk/table_impl.h"
@@ -51,6 +53,9 @@ const char* builtin_cmd_list[] = {
 
     "get",
     "get <tablename> <rowkey> [<columnfamily:qualifier>]",
+
+    "config",
+    "config [<key=value]]",
 
     "help",
     "help [cmd]                                                       \n\
@@ -260,6 +265,33 @@ int32_t GetOp(MetaBase* meta_base, int argc, char* argv[]) {
     return 0;
 }
 
+void UpdateSysConfig(const std::string& k, const std::string& v) {
+    if (k == "v") {
+        int32_t value = FLAGS_minloglevel;
+        if (toft::StringToNumber(v, &value)) {
+            FLAGS_minloglevel = value;
+            std::cout << "set to: " << value << std::endl;
+        }
+    }
+}
+
+int32_t ConfigOp(MetaBase* meta_base, int argc, char* argv[]) {
+    if (argc < 3) {
+        LOG(ERROR) << "error argument, need 3";
+        return -1;
+    }
+    std::string config_str = argv[2];
+    std::vector<std::string> params;
+    toft::SplitString(config_str, ",", &params);
+    for (uint32_t i = 0; i < params.size(); ++i) {
+        std::vector<std::string> items;
+        toft::SplitString(params[i], "=", &items);
+        if (items.size() > 1) {
+            UpdateSysConfig(items[0], items[1]);
+        }
+    }
+    return 0;
+}
 
 MetaBase* PrepareMetaBase() {
     if (!toft::IsExist(FLAGS_xsheet_workspace_dir)
@@ -287,6 +319,7 @@ static void InitializeCommandTable(){
     command_table["show"] = xsheet::ShowOp;
     command_table["put"] = xsheet::PutOp;
     command_table["get"] = xsheet::GetOp;
+    command_table["config"] = xsheet::ConfigOp;
     command_table["help"] = xsheet::HelpOp;
 }
 
