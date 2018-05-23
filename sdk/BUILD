@@ -48,7 +48,10 @@ cc_binary(
         ':table',
         '//engine:tablet',
         '//thirdparty/glog:glog',
-        '//thirdparty/gflags:gflags'
+        '//thirdparty/gflags:gflags',
+        '//thirdparty/readline:readline',
+        '//thirdparty/readline:history',
+        '#ncurses'
     ]
 )
 

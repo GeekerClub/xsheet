@@ -13,9 +13,11 @@
 #include <memory>
 #include <sstream>
 
-#include "toft/base/scoped_ptr.h"
 #include "thirdparty/gflags/gflags.h"
 #include "thirdparty/glog/logging.h"
+#include "thirdparty/readline/history.h"
+#include "thirdparty/readline/readline.h"
+#include "toft/base/scoped_ptr.h"
 #include "toft/storage/path/path_ext.h"
 
 // #include "sdk/table_impl.h"
@@ -33,6 +35,9 @@ DEFINE_string(xsheet_default_table, "xsheet_db", "test database for xsheet bench
 DEFINE_string(xsheet_workspace_dir, "xsheet_test", "test path for xsheet benchmark");
 DEFINE_string(xsheet_kvbase_prefix, "/leveldb/", "the default engine to be activated");
 DEFINE_string(xsheet_cli_metabase, "metabase.db", "");
+
+
+typedef std::map<std::string, int32_t(*)(xsheet::MetaBase*, int32_t, char* argv[])> CommandTable;
 
 namespace xsheet {
 
@@ -147,7 +152,7 @@ void ParseCfQualifier(const std::string& input, std::string* columnfamily,
     }
 }
 
-int32_t CreateOp(MetaBase* meta_base, int argc, char* argv[]) {
+int32_t CreateByFileOp(MetaBase* meta_base, int argc, char* argv[]) {
     if (argc < 3) {
         PrintCmdHelpInfo(argv[1]);
         return -1;
@@ -171,7 +176,13 @@ int32_t CreateOp(MetaBase* meta_base, int argc, char* argv[]) {
     return meta_base->Put(schema.name(), schema)?0:-1;
 }
 
-int32_t WriteOp(MetaBase* meta_base, int argc, char* argv[]) {
+int32_t DropOp(MetaBase* meta_base, int argc, char* argv[]) {
+}
+
+int32_t ShowOp(MetaBase* meta_base, int argc, char* argv[]) {
+}
+
+int32_t PutOp(MetaBase* meta_base, int argc, char* argv[]) {
     if (argc != 5 && argc != 6) {
         LOG(ERROR) << "args number error: " << argc << ", need 5 | 6.";
         PrintCmdHelpInfo(argv[1]);
@@ -209,7 +220,7 @@ int32_t WriteOp(MetaBase* meta_base, int argc, char* argv[]) {
     return 0;
 }
 
-int32_t ReadOp(MetaBase* meta_base, int argc, char* argv[]) {
+int32_t GetOp(MetaBase* meta_base, int argc, char* argv[]) {
     if (argc != 4 && argc != 5) {
         LOG(ERROR) << "args number error: " << argc << ", need 5 | 6.";
         PrintCmdHelpInfo(argv[1]);
@@ -260,6 +271,41 @@ MetaBase* PrepareMetaBase() {
 
 } // namespace xsheet
 
+static CommandTable& GetCommandTable(){
+    static CommandTable command_table;
+    return command_table;
+}
+
+static void InitializeCommandTable(){
+    CommandTable& command_table = GetCommandTable();
+    command_table["createbyfile"] = xsheet::CreateByFileOp;
+    command_table["drop"] = xsheet::DropOp;
+    command_table["show"] = xsheet::ShowOp;
+    command_table["put"] = xsheet::PutOp;
+    command_table["get"] = xsheet::GetOp;
+}
+
+void PrintSystemVersion() {
+
+}
+
+int32_t ExecuteCommand(xsheet::MetaBase* meta_base, int argc, char* argv[]) {
+    int32_t ret = 0;
+
+    CommandTable& command_table = GetCommandTable();
+    std::string cmd = argv[1];
+    if (cmd == "version") {
+        PrintSystemVersion();
+    } else if (command_table.find(cmd) != command_table.end()) {
+        ret = command_table[cmd](meta_base, argc, argv);
+    } else {
+        xsheet::PrintUnknownCmdHelpInfo(argv[1]);
+        ret = -1;
+    }
+
+    return ret;
+}
+
 int main(int argc, char* argv[]) {
     ::google::ParseCommandLineFlags(&argc, &argv, true);
 
@@ -270,14 +316,48 @@ int main(int argc, char* argv[]) {
 
     toft::scoped_ptr<xsheet::MetaBase> meta_base(xsheet::PrepareMetaBase());
 
-    int32_t ret = 0;
-    std::string cmd = argv[1];
-    if (cmd == "createbyfile") {
-        ret = xsheet::CreateOp(meta_base.get(), argc, argv);
-    } else if (cmd == "put") {
-        ret = xsheet::WriteOp(meta_base.get(), argc, argv);
-    } else if (cmd == "get") {
-        ret = xsheet::ReadOp(meta_base.get(), argc, argv);
+//     int32_t ret = 0;
+//     std::string cmd = argv[1];
+//     if (cmd == "createbyfile") {
+//         ret = xsheet::CreateOp(meta_base.get(), argc, argv);
+//     } else if (cmd == "put") {
+//         ret = xsheet::WriteOp(meta_base.get(), argc, argv);
+//     } else if (cmd == "get") {
+//         ret = xsheet::ReadOp(meta_base.get(), argc, argv);
+//     }
+
+
+    InitializeCommandTable();
+
+    int32_t ret  = 0;
+    if (argc == 1) {
+        char* line = NULL;
+        while ((line = readline("xsheet> ")) != NULL) {
+            char* line_copy = strdup(line);
+            std::vector<char*> arg_list;
+            arg_list.push_back(argv[0]);
+            char* tmp = NULL;
+            char* token = strtok_r(line, " \t", &tmp);
+            while (token != NULL) {
+                arg_list.push_back(token);
+                token = strtok_r(NULL, " \t", &tmp);
+            }
+            if (arg_list.size() == 2 &&
+                (strcmp(arg_list[1], "quit") == 0 || strcmp(arg_list[1], "exit") == 0)) {
+                free(line_copy);
+                free(line);
+                break;
+            }
+            if (arg_list.size() > 1) {
+                add_history(line_copy);
+                ret = ExecuteCommand(meta_base.get(), arg_list.size(), &arg_list[0]);
+            }
+            free(line_copy);
+            free(line);
+        }
+    } else {
+        ret = ExecuteCommand(meta_base.get(), argc, argv);
     }
+
     return ret;
 }
