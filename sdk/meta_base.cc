@@ -67,9 +67,10 @@ bool MetaBase::Get(std::vector<TabletSchema>* schema_list,
                    int32_t offset, int32_t payload_num) {
     KvIterator* iter = kvbase_->NewIterator(ReadOptions());
 
-    for (int32_t count = 0, iter->SeekToFirst();
-         iter->Valid(); iter->Next() && count < offset + payload_num,
-         ++count) {
+    int32_t count = 0;
+    for (iter->SeekToFirst();
+         iter->Valid() && count < offset + payload_num;
+         iter->Next(), ++count) {
         if (count < offset) {
             continue;
         }

@@ -195,21 +195,28 @@ int32_t DropOp(MetaBase* meta_base, int argc, char* argv[]) {
     }
 
     std::string tablename = argv[2];
-    StatusCode status = meta_base->Delete(tablename);
-    if (status != kBaseOk) {
+    if (!meta_base->Delete(tablename)) {
         LOG(ERROR) << "fail to drop table: " << tablename;
-        return -1
+        return -1;
     }
     return 0;
 }
 
 int32_t ShowSingleTable(MetaBase* meta_base, const std::string& table_name,
                         bool is_x) {
-
+    return -1;
 }
 
 int32_t ShowSingleTable(MetaBase* meta_base, bool is_x) {
-
+    std::vector<TabletSchema> schema_list;
+    if (!meta_base->Get(&schema_list)) {
+        LOG(ERROR) << "fail to get schema list";
+        return -1;
+    }
+    for (uint32_t i = 0; i < schema_list.size(); ++i) {
+        std::cout << schema_list[i].ShortDebugString() << std::endl;
+    }
+    return 0;
 }
 
 int32_t ShowOp(MetaBase* meta_base, int argc, char* argv[]) {
@@ -221,15 +228,17 @@ int32_t ShowOp(MetaBase* meta_base, int argc, char* argv[]) {
 
     int32_t ret_val;
     std::string cmd = argv[1];
-    if (argc == 3) {
-        ret_val = ShowSingleTable(meta_base, argv[2], cmd == "showx");
-    } else if (argc == 2 && (cmd == "show" || cmd == "showx" || cmd == "showall")) {
-        ret_val = ShowAllTables(meta_base, cmd == "showx");
-    } else {
-        ret_val = -1;
-        LOG(ERROR) << "error: arg num: " << argc;
-    }
-    return ret_val;
+
+    return ShowSingleTable(meta_base, true);
+//     if (argc == 3) {
+//         ret_val = ShowSingleTable(meta_base, argv[2], cmd == "showx");
+//     } else if (argc == 2 && (cmd == "show" || cmd == "showx" || cmd == "showall")) {
+//         ret_val = ShowAllTables(meta_base, cmd == "showx");
+//     } else {
+//         ret_val = -1;
+//         LOG(ERROR) << "error: arg num: " << argc;
+//     }
+//     return ret_val;
 }
 
 int32_t PutOp(MetaBase* meta_base, int argc, char* argv[]) {
@@ -360,6 +369,8 @@ static void InitializeCommandTable(){
     command_table["show"] = xsheet::ShowOp;
     command_table["put"] = xsheet::PutOp;
     command_table["get"] = xsheet::GetOp;
+    command_table["show"] = xsheet::ShowOp;
+    command_table["drop"] = xsheet::DropOp;
     command_table["config"] = xsheet::ConfigOp;
     command_table["help"] = xsheet::HelpOp;
 }
