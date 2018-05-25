@@ -31,7 +31,7 @@
 
 DECLARE_string(flagfile);
 DECLARE_string(log_dir);
-
+DECLARE_int32(v);
 
 DEFINE_string(xsheet_default_table, "xsheet_db", "test database for xsheet benchmark");
 DEFINE_string(xsheet_workspace_dir, "xsheet_test", "test path for xsheet benchmark");
@@ -269,8 +269,8 @@ void UpdateSysConfig(const std::string& k, const std::string& v) {
     if (k == "v") {
         int32_t value = FLAGS_minloglevel;
         if (toft::StringToNumber(v, &value)) {
-            FLAGS_minloglevel = value;
-            std::cout << "set to: " << value << std::endl;
+            FLAGS_v = value;
+            std::cout << "set: " << k << " <-- " << value << std::endl;
         }
     }
 }
