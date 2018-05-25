@@ -54,6 +54,9 @@ const char* builtin_cmd_list[] = {
     "get",
     "get <tablename> <rowkey> [<columnfamily:qualifier>]",
 
+    "drop",
+    "drop <tablename>",
+
     "config",
     "config [<key=value]]",
 
@@ -186,9 +189,47 @@ int32_t CreateByFileOp(MetaBase* meta_base, int argc, char* argv[]) {
 }
 
 int32_t DropOp(MetaBase* meta_base, int argc, char* argv[]) {
+    if (argc < 3) {
+        PrintCmdHelpInfo(argv[1]);
+        return -1;
+    }
+
+    std::string tablename = argv[2];
+    StatusCode status = meta_base->Delete(tablename);
+    if (status != kBaseOk) {
+        LOG(ERROR) << "fail to drop table: " << tablename;
+        return -1
+    }
+    return 0;
+}
+
+int32_t ShowSingleTable(MetaBase* meta_base, const std::string& table_name,
+                        bool is_x) {
+
+}
+
+int32_t ShowSingleTable(MetaBase* meta_base, bool is_x) {
+
 }
 
 int32_t ShowOp(MetaBase* meta_base, int argc, char* argv[]) {
+    if (argc < 2) {
+        LOG(ERROR) << "args number error: " << argc << ", need >2.";
+        PrintCmdHelpInfo(argv[1]);
+        return -1;
+    }
+
+    int32_t ret_val;
+    std::string cmd = argv[1];
+    if (argc == 3) {
+        ret_val = ShowSingleTable(meta_base, argv[2], cmd == "showx");
+    } else if (argc == 2 && (cmd == "show" || cmd == "showx" || cmd == "showall")) {
+        ret_val = ShowAllTables(meta_base, cmd == "showx");
+    } else {
+        ret_val = -1;
+        LOG(ERROR) << "error: arg num: " << argc;
+    }
+    return ret_val;
 }
 
 int32_t PutOp(MetaBase* meta_base, int argc, char* argv[]) {

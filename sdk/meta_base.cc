@@ -54,4 +54,34 @@ bool MetaBase::Get(const std::string& db_name, TabletSchema* schema) {
     return true;
 }
 
+bool MetaBase::Delete(const std::string& db_name) {
+   StatusCode status = kvbase_->Delete(WriteOptions(), db_name);
+   if (status != kBaseOk) {
+       LOG(ERROR) << "fail to delete db: " << db_name;
+       return false;
+   }
+   return true;
+}
+
+bool MetaBase::Get(std::vector<TabletSchema>* schema_list,
+                   int32_t offset, int32_t payload_num) {
+    KvIterator* iter = kvbase_->NewIterator(ReadOptions());
+
+    for (int32_t count = 0, iter->SeekToFirst();
+         iter->Valid(); iter->Next() && count < offset + payload_num,
+         ++count) {
+        if (count < offset) {
+            continue;
+        }
+        TabletSchema schema;
+        if (!schema.ParseFromString(iter->Value().as_string())) {
+            LOG(WARNING) << "fail to parse schema string: " << iter->Value();
+            continue;
+        }
+        schema_list->push_back(schema);
+    }
+    delete iter;
+    return true;
+}
+
 } // namespace xsheet
