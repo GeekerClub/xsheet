@@ -23,7 +23,7 @@ public:
     struct Result {};
 
 public:
-    Cache(const std::string& name, CacheOptions options);
+    Cache(const std::string& name, const CacheOptions& options);
     virtual ~Cache() {}
 
     virtual toft::StringPiece Value() = 0;
@@ -56,6 +56,7 @@ public:
     virtual bool Exists(const std::string& path) = 0;
     virtual bool Delete(const std::string& path) = 0;
     virtual int64_t GetSize(const std::string& path) = 0;
+
 };
 
 TOFT_CLASS_REGISTRY_DEFINE_SINGLETON(cache_system, CacheSystem);
