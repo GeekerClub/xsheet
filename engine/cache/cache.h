@@ -7,6 +7,9 @@
 #ifndef XSHEET_ENGINE_CACHE_CACHE_H
 #define XSHEET_ENGINE_CACHE_CACHE_H
 
+#include "toft/base/string/string_piece.h"
+#include "toft/base/class_registry.h"
+#include "toft/base/uncopyable.h"
 
 namespace xsheet {
 
