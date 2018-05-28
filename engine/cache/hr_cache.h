@@ -8,6 +8,10 @@
 
 #include "engine/cache/cache.h"
 
+#include <map>
+
+#include "toft/system/threadming/mutex.h"
+
 namespace xsheet {
 
 struct HrResult : public Cache::Result {
@@ -46,11 +50,12 @@ public:
     }
 
 public:
-    static const char* Level;
+    static const char* Name;
 
 private:
-    std::string cache_path_;
-    CacheOptions base_options_;
+    typedef std::pair<CacheOptions, HRCache*> CacheNode;
+    std::map<std::string, CacheNode> cache_list_;
+    toft::Mutex list_mutext_;
 };
 
 } // namespace xsheet
