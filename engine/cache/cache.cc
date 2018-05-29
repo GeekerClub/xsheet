@@ -9,7 +9,7 @@
 namespace xsheet {
 
 Cache::Cache(const std::string& name, CacheOptions options)
-    : name_(name), options_(options) {}
+    : name_(name), options_(options), cur_num_(0) {}
 
 CacheSystem* Cache::GetCacheSystemByName(const std::string& db_path, std::string* real_path) {
     // "/hot_predict/abc" -> "hot_predict"

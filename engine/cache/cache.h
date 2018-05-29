@@ -14,7 +14,7 @@
 namespace xsheet {
 
 struct CacheOptions {
-
+    uint32_t capacity;
 };
 
 class Cache {
@@ -44,6 +44,8 @@ protected:
 protected:
     std::string name_;
     CacheOptions options_;
+
+    uint64_t cur_num_;
 };
 
 
