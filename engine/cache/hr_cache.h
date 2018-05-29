@@ -31,8 +31,20 @@ public:
     virtual Result* Erase(const toft::StringPiece& key, Handle handle);
 
 private:
-    uint32_t capality_limist_;
+    struct CacheNode {
+        int64_t offset;
+        int64_t load_count;
+        toft::StringPiece payload;
 
+        bool operator>(const CacheNode& rhs) {
+            return load_count > rhs.load_count;
+        }
+
+        CacheNode() : offset(0), load_count(0) {}
+    };
+
+    std::vector<CacheNode> cache_;
+    toft::Mutex cache_mutext_;
 };
 
 class HRCacheSystem : public CacheSystem {
@@ -46,11 +58,11 @@ public:
     virtual int64_t GetSize(const std::string& cache_path);
 
     static HRCacheSystem* GetRegisteredCacheSystem() {
-        return static_cast<HRCacheSystem*>(TOFT_GET_BASE_SYSTEM(Level));
+        return static_cast<HRCacheSystem*>(TOFT_GET_BASE_SYSTEM(HRCache));
     }
 
 public:
-    static const char* Name;
+    static const char* HRCache;
 
 private:
     typedef std::pair<CacheOptions, HRCache*> CacheNode;

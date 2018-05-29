@@ -18,7 +18,7 @@ toft::StringPiece HRCache::Value() {
 }
 
 Resutl* HRCache::Insert(const toft::StringPiece& key,
-                       const toft::StringPiece& value) {
+                        const toft::StringPiece& value) {
 
 }
 
@@ -27,7 +27,7 @@ Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
 }
 
 
-const char* HRCacheSystem::Name = "hr";
+const char* HRCacheSystem::HRCache = "hr";
 
 TOFT_REGISTER_CACHE_SYSTEM("hr", HRCacheSystem);
 
