@@ -78,5 +78,8 @@ enum StatusCode {
     kTabletAsyncTooBusy = 2002;
     kTabletAsyncFailure = 2003;
     kTabletInvalidArg = 2004;
+
+    kCacheOk = 3000;
+    kCacheOverLoad = 3001;
 }
 
