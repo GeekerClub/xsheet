@@ -15,7 +15,12 @@
 namespace xsheet {
 
 struct HrResult : public Cache::Result {
+    StatusCode status_;
+    std::string reason_;
 
+    HrResult(const StatusCode& status = kCacheOk,
+             const std::string& reason = "")
+        : status_(status), reason_(reason) {}
 };
 
 class HRCache : public Cache {
@@ -24,7 +29,7 @@ public:
     virtual ~HRCache();
 
 
-    virtual toft::StringPiece Value();
+    virtual toft::StringPiece Lookup(const toft::StringPiece& key);
 
     virtual Resutl* Insert(const toft::StringPiece& key,
                            const toft::StringPiece& value);
@@ -32,18 +37,18 @@ public:
 
 private:
     struct CacheNode {
-        int64_t offset;
-        int64_t load_count;
-        toft::StringPiece payload;
+        toft::StringPiece key_;
+        int64_t hit_count_;
+        toft::StringPiece payload_;
 
         bool operator>(const CacheNode& rhs) {
-            return load_count > rhs.load_count;
+            return hit_count_ > rhs.hit_count_;
         }
 
-        CacheNode() : offset(0), load_count(0) {}
+        CacheNode() : hit_count_(0) {}
     };
 
-    std::vector<CacheNode> cache_;
+    std::map<toft::StringPiece, CacheNode> cache_;
     toft::Mutex cache_mutext_;
 };
 

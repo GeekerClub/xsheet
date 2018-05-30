@@ -13,17 +13,40 @@ HRCache::HRCache(const std::string& name, const CacheOptions& options)
 HRCache::~HRCache() {}
 
 
-toft::StringPiece HRCache::Value() {
+toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
 
 }
 
 Resutl* HRCache::Insert(const toft::StringPiece& key,
                         const toft::StringPiece& value) {
+    toft::MutexLocker lock(&cache_mutex_);
+    if (key.size() + value.size() + cur_load_ > options_.capacity_limit_) {
+        LOG(ERROR) << "cache over load, status: " << StatusCode_Name(kCacheOverLoad);
+        return new HrResult(kCacheOverLoad, "cache over load");
+    }
 
+    CacheNode node;
+    node.key_ = key;
+    node.payload_ = value;
+    cache_[key] = node;
+
+    return new HrResult(kCacheOk, "");
+}
+
+Resutl* HRCache::Insert(const std::string& file_name, int64_t offset,
+                        const toft::StringPiece& value) {
+    return Insert(file_name + "/" + toft::NumberToString(offset), value);
 }
 
 Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
+    toft::MutexLocker lock(&cache_mutex_);
 
+    std::map<toft::StringPiece, CacheNode>::iterator it = cache_.find(key);
+    if (it == cache_.end()) {
+        return new HrResult(kCacheOk, "");
+    }
+    cache_.erase(it);
+    return new HrResult(kCacheOk, "");
 }
 
 
