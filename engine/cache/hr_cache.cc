@@ -14,10 +14,16 @@ HRCache::~HRCache() {}
 
 
 toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
+    toft::MutexLocker lock(&cache_mutex_);
 
+    std::map<toft::StringPiece, CacheNode>::iterator it = cache_.find(key);
+    if (it == cache_.end()) {
+        return "";
+    }
+    return it->second.payload_;
 }
 
-Resutl* HRCache::Insert(const toft::StringPiece& key,
+Cache::Result* HRCache::Insert(const toft::StringPiece& key,
                         const toft::StringPiece& value) {
     toft::MutexLocker lock(&cache_mutex_);
     if (key.size() + value.size() + cur_load_ > options_.capacity_limit_) {
@@ -33,12 +39,7 @@ Resutl* HRCache::Insert(const toft::StringPiece& key,
     return new HrResult(kCacheOk, "");
 }
 
-Resutl* HRCache::Insert(const std::string& file_name, int64_t offset,
-                        const toft::StringPiece& value) {
-    return Insert(file_name + "/" + toft::NumberToString(offset), value);
-}
-
-Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
+Cache::Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
     toft::MutexLocker lock(&cache_mutex_);
 
     std::map<toft::StringPiece, CacheNode>::iterator it = cache_.find(key);
@@ -50,7 +51,7 @@ Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
 }
 
 
-const char* HRCacheSystem::HRCache = "hr";
+const char* HRCacheSystem::HR = "hr";
 
 TOFT_REGISTER_CACHE_SYSTEM("hr", HRCacheSystem);
 
@@ -65,7 +66,7 @@ HRCache* HRCacheSystem::Open(const std::string& cache_path, const CacheOptions& 
         LOG(WARNING) << "cache existed: " << cache_path;
         return it->second.second;
     }
-    HRCache* cache = HRCache(cache_path, options);
+    HRCache* cache = new HRCache(cache_path, options);
     CacheNode node(options, cache);
     cache_list_[cache_path] = node;
     return cache;

@@ -10,17 +10,17 @@
 
 namespace xsheet {
 
-Cache::Cache(const std::string& name, CacheOptions options)
+Cache::Cache(const std::string& name, const CacheOptions& options)
     : name_(name), options_(options), cur_load_(0) {}
 
 
-Resutl* Cache::Insert(const std::string& file_path, int64_t offset,
+Cache::Result* Cache::Insert(const std::string& file_path, int64_t offset,
                       const toft::StringPiece& value) {
-    return Insert(file_name + "/" + toft::NumberToString(offset), value);
+    return Insert(file_path + "/" + toft::NumberToString(offset), value);
 }
 
-Result* Cache::Erase(const std::string& file_path, int64_t offset, Handle handle) {
-    return Erase(file_name + "/" + toft::NumberToString(offset), handle);
+Cache::Result* Cache::Erase(const std::string& file_path, int64_t offset, Handle handle) {
+    return Erase(file_path + "/" + toft::NumberToString(offset), handle);
 }
 
 CacheSystem* Cache::GetCacheSystemByName(const std::string& db_path, std::string* real_path) {
@@ -31,8 +31,8 @@ CacheSystem* Cache::GetCacheSystemByName(const std::string& db_path, std::string
             std::string prefix = db_path.substr(1, next_slash - 1);
             *real_path = db_path.substr(next_slash + 1, db_path.length() - 1);
             CacheSystem* cs = TOFT_GET_CACHE_SYSTEM(prefix);
-            if (fs != NULL)
-                return fs;
+            if (cs != NULL)
+                return cs;
         }
     }
     return TOFT_GET_CACHE_SYSTEM("default");

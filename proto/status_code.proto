@@ -81,5 +81,6 @@ enum StatusCode {
 
     kCacheOk = 3000;
     kCacheOverLoad = 3001;
+    kCacheNotExist = 3002;
 }
 

@@ -10,7 +10,9 @@
 
 #include <map>
 
-#include "toft/system/threadming/mutex.h"
+#include "toft/system/threading/mutex.h"
+
+#include "proto/status_code.pb.h"
 
 namespace xsheet {
 
@@ -25,13 +27,13 @@ struct HrResult : public Cache::Result {
 
 class HRCache : public Cache {
 public:
-    HRCache();
+    HRCache(const std::string& name, const CacheOptions& options);
     virtual ~HRCache();
 
 
     virtual toft::StringPiece Lookup(const toft::StringPiece& key);
 
-    virtual Resutl* Insert(const toft::StringPiece& key,
+    virtual Result* Insert(const toft::StringPiece& key,
                            const toft::StringPiece& value);
     virtual Result* Erase(const toft::StringPiece& key, Handle handle);
 
@@ -49,7 +51,7 @@ private:
     };
 
     std::map<toft::StringPiece, CacheNode> cache_;
-    toft::Mutex cache_mutext_;
+    toft::Mutex cache_mutex_;
 };
 
 class HRCacheSystem : public CacheSystem {
@@ -63,16 +65,16 @@ public:
     virtual int64_t GetSize(const std::string& cache_path);
 
     static HRCacheSystem* GetRegisteredCacheSystem() {
-        return static_cast<HRCacheSystem*>(TOFT_GET_BASE_SYSTEM(HRCache));
+        return static_cast<HRCacheSystem*>(TOFT_GET_CACHE_SYSTEM(HR));
     }
 
 public:
-    static const char* HRCache;
+    static const char* HR;
 
 private:
     typedef std::pair<CacheOptions, HRCache*> CacheNode;
     std::map<std::string, CacheNode> cache_list_;
-    toft::Mutex list_mutext_;
+    toft::Mutex list_mutex_;
 };
 
 } // namespace xsheet

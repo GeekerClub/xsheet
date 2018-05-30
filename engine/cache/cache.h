@@ -7,19 +7,23 @@
 #ifndef XSHEET_ENGINE_CACHE_CACHE_H
 #define XSHEET_ENGINE_CACHE_CACHE_H
 
+#include <stdint.h>
+
 #include "toft/base/string/string_piece.h"
 #include "toft/base/class_registry.h"
 #include "toft/base/uncopyable.h"
 
 namespace xsheet {
 
+class CacheSystem;
+
 struct CacheOptions {
-    uint32_t capacity;
+    uint32_t capacity_limit_;
 };
 
 class Cache {
 public:
-    typedef void (*)(const toft::StringPiece& key, const toft::StringPiece& value) Handle;
+    typedef void (*Handle)(const toft::StringPiece& key, const toft::StringPiece& value);
     struct Result {};
 
 public:
@@ -28,11 +32,11 @@ public:
 
     virtual toft::StringPiece Lookup(const toft::StringPiece& key) = 0;
 
-    virtual Resutl* Insert(const toft::StringPiece& key,
+    virtual Result* Insert(const toft::StringPiece& key,
                            const toft::StringPiece& value) = 0;
     virtual Result* Erase(const toft::StringPiece& key, Handle handle) = 0;
 
-    virtual Resutl* Insert(const std::string& file_path, int64_t offset,
+    virtual Result* Insert(const std::string& file_path, int64_t offset,
                            const toft::StringPiece& value);
     virtual Result* Erase(const std::string& file_path, int64_t offset, Handle handle);
 
