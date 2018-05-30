@@ -6,10 +6,22 @@
 #include "engine/cache/cache.h"
 
 
+#include "toft/base/string/number.h"
+
 namespace xsheet {
 
 Cache::Cache(const std::string& name, CacheOptions options)
-    : name_(name), options_(options), cur_num_(0) {}
+    : name_(name), options_(options), cur_load_(0) {}
+
+
+Resutl* Cache::Insert(const std::string& file_path, int64_t offset,
+                      const toft::StringPiece& value) {
+    return Insert(file_name + "/" + toft::NumberToString(offset), value);
+}
+
+Result* Cache::Erase(const std::string& file_path, int64_t offset, Handle handle) {
+    return Erase(file_name + "/" + toft::NumberToString(offset), handle);
+}
 
 CacheSystem* Cache::GetCacheSystemByName(const std::string& db_path, std::string* real_path) {
     // "/hot_predict/abc" -> "hot_predict"

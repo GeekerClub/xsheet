@@ -26,11 +26,15 @@ public:
     Cache(const std::string& name, const CacheOptions& options);
     virtual ~Cache() {}
 
-    virtual toft::StringPiece Value() = 0;
+    virtual toft::StringPiece Lookup(const toft::StringPiece& key) = 0;
 
     virtual Resutl* Insert(const toft::StringPiece& key,
                            const toft::StringPiece& value) = 0;
     virtual Result* Erase(const toft::StringPiece& key, Handle handle) = 0;
+
+    virtual Resutl* Insert(const std::string& file_path, int64_t offset,
+                           const toft::StringPiece& value);
+    virtual Result* Erase(const std::string& file_path, int64_t offset, Handle handle);
 
 public:
     static Cache* Open(const std::string& name, const CacheOptions& options);
@@ -45,7 +49,7 @@ protected:
     std::string name_;
     CacheOptions options_;
 
-    uint64_t cur_num_;
+    uint64_t cur_load_;
 };
 
 
