@@ -16,11 +16,11 @@ HRCache::~HRCache() {}
 toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
     toft::MutexLocker lock(&cache_mutex_);
 
-    std::map<toft::StringPiece, CacheNode>::iterator it = cache_.find(key);
-    if (it == cache_.end()) {
+    std::map<toft::StringPiece, CacheNode>::iterator it = cache_index_.find(key);
+    if (it == cache_index_.end()) {
         return "";
     }
-    return it->second.payload_;
+    return cache_[it->second].payload_;
 }
 
 Cache::Result* HRCache::Insert(const toft::StringPiece& key,
@@ -31,10 +31,17 @@ Cache::Result* HRCache::Insert(const toft::StringPiece& key,
         return new HrResult(kCacheOverLoad, "cache over load");
     }
 
+    std::map<toft::StringPiece, CacheNode>::iterator it = cache_index_.find(key);
+    if (it != cache_index_.end()) {
+        cache_[it->second].hit_count_++;
+        return new HrResult(kCacheOk, "");
+    }
+
     CacheNode node;
     node.key_ = key;
     node.payload_ = value;
-    cache_[key] = node;
+    cache_.push_back(node);
+    cache_index_[key] = cache_.size() - 1;
 
     return new HrResult(kCacheOk, "");
 }
@@ -42,11 +49,12 @@ Cache::Result* HRCache::Insert(const toft::StringPiece& key,
 Cache::Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
     toft::MutexLocker lock(&cache_mutex_);
 
-    std::map<toft::StringPiece, CacheNode>::iterator it = cache_.find(key);
-    if (it == cache_.end()) {
+    std::map<toft::StringPiece, CacheNode>::iterator it = cache_index_.find(key);
+    if (it == cache_index_.end()) {
         return new HrResult(kCacheOk, "");
     }
-    cache_.erase(it);
+    cache_.erase(cache_.begin() + it->second);
+    cache_index_.erase(it);
     return new HrResult(kCacheOk, "");
 }
 

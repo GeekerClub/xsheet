@@ -9,6 +9,7 @@
 #include "engine/cache/cache.h"
 
 #include <map>
+#include <vector>
 
 #include "toft/system/threading/mutex.h"
 
@@ -50,7 +51,8 @@ private:
         CacheNode() : hit_count_(0) {}
     };
 
-    std::map<toft::StringPiece, CacheNode> cache_;
+    std::map<toft::StringPiece, uint32_t> cache_index_;
+    std::vector<CacheNode> cache_;
     toft::Mutex cache_mutex_;
 };
 
