@@ -16,7 +16,10 @@ namespace xsheet {
 HRCache::HRCache(const std::string& name, const CacheOptions& options)
     : erase_timer_id_(kInvalidTimerId), Cache(name, options) {}
 
-HRCache::~HRCache() {}
+HRCache::~HRCache() {
+    toft::MutexLocker lock(&cache_mutex_);
+    ReleaseCacheNode(0, cache_.size());
+}
 
 
 toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
@@ -74,6 +77,7 @@ void HRCache::EraseElement(uint64_t timer_id) {
     }
 
     uint64_t erase_num = cache_.size() - options_.erase_limit_;
+    ReleaseCacheNode(erase_num, cache_.size());
     cache_.erase(cache_.begin() + erase_num, cache_.end());
     cache_index_.clear();
     for (uint32_t i = 0; i < cache_.size(); ++i) {
@@ -82,6 +86,18 @@ void HRCache::EraseElement(uint64_t timer_id) {
     }
 }
 
+bool HRCache::ReleaseCacheNode(uint32_t start, uint32_t end) {
+    if (start < 0 || end > cache_.size()) {
+        LOG(ERROR) << "wrong boundary, start: " << start
+            << ", end: " << end;
+        return false;
+    }
+    for (uint32_t i = start; i < end; ++i) {
+        CacheNode* node = cache_[i];
+        delete node;
+    }
+    return true;
+}
 
 void HRCache::EnableEraseTimer(int32_t expand_factor) {
     if (erase_timer_id_ == kInvalidTimerId) {

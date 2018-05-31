@@ -44,6 +44,8 @@ private:
     void EnableEraseTimer(int32_t expand_factor);
     void DisableEraseTimer();
 
+    bool ReleaseCacheNode(uint32_t start, uint32_t end);
+
 private:
     struct CacheNode {
         toft::StringPiece key_;
