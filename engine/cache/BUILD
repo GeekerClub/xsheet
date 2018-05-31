@@ -8,6 +8,7 @@ cc_library(
         '//proto:status_code_proto',
         '//toft/base/string:string',
         '//toft/system/threading:threading',
+        '//toft/system/timer:timer',
         '//thirdparty/glog:glog'
     ],
      link_all_symbols=True

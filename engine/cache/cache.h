@@ -18,7 +18,9 @@ namespace xsheet {
 class CacheSystem;
 
 struct CacheOptions {
-    uint32_t capacity_limit_;
+    uint64_t capacity_limit_;
+    uint64_t erase_limit_;
+    uint64_t timer_in_sec_;
 };
 
 class Cache {

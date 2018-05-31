@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "toft/system/threading/mutex.h"
+#include "toft/system/timer/timer_manager.h"
 
 #include "proto/status_code.pb.h"
 
@@ -39,6 +40,11 @@ public:
     virtual Result* Erase(const toft::StringPiece& key, Handle handle);
 
 private:
+    void EraseElement(uint64_t timer_id);
+    void EnableEraseTimer(int32_t expand_factor);
+    void DisableEraseTimer();
+
+private:
     struct CacheNode {
         toft::StringPiece key_;
         int64_t hit_count_;
@@ -52,8 +58,11 @@ private:
     };
 
     std::map<toft::StringPiece, uint32_t> cache_index_;
-    std::vector<CacheNode> cache_;
+    std::vector<CacheNode*> cache_;
     toft::Mutex cache_mutex_;
+
+    uint64_t erase_timer_id_;
+    toft::TimerManager* timer_manager_;
 };
 
 class HRCacheSystem : public CacheSystem {
@@ -77,6 +86,8 @@ private:
     typedef std::pair<CacheOptions, HRCache*> CacheNode;
     std::map<std::string, CacheNode> cache_list_;
     toft::Mutex list_mutex_;
+
+    toft::TimerManager timer_manager_;
 };
 
 } // namespace xsheet
