@@ -13,3 +13,12 @@ cc_library(
     ],
      link_all_symbols=True
 )
+
+cc_test(
+    name = 'hr_cache_test',
+    srcs = 'hr_cache_test.cc',
+    deps = [
+        ':cache',
+        '//thirdparty/gtest:gtest'
+    ]
+)
