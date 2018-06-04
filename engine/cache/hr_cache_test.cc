@@ -3,6 +3,8 @@
 //
 // Description:
 
+#include "engine/cache/hr_cache.h"
+
 #include "thirdparty/gflags/gflags.h"
 #include "thirdparty/glog/logging.h"
 #include "thirdparty/gtest/gtest.h"
@@ -15,7 +17,7 @@ public:
     ~HRCacheTest() {}
 
 protected:
-
+    HRCache* cache_;
 };
 
 TEST_F(HRCacheTest, General) {
