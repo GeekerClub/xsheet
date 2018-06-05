@@ -6,8 +6,9 @@
 #include "engine/cache/hr_cache.h"
 
 #include "toft/base/string/string_piece.h"
+#include "toft/base/string/number.h"
 #include "toft/base/scoped_ptr.h"
-#include "thirdpartygflags/gflags.h"
+#include "thirdparty/gflags/gflags.h"
 #include "thirdparty/glog/logging.h"
 #include "thirdparty/gtest/gtest.h"
 
@@ -31,25 +32,25 @@ public:
     void CreateData(uint32_t num) {
         std::string payload = "payload";
         for (uint32_t i = 0; i < num; ++i) {
-            cache_.Insert("file", i % 3, payload + toft::NumberToString(i));
+            cache_->Insert("file", i % 3, payload + toft::NumberToString(i));
         }
     }
 
     void HitData(uint32_t num) {
         for (uint32_t i = 0; i < num; ++i) {
             if (i % 2 == 0) {
-                toft::StringPiece sp = cache_.Lookup("file", i % 3);
+                toft::StringPiece sp = cache_->Lookup("file", i % 3);
                 EXPECT_TRUE(sp.as_string() != "");
             } else {
-                Cache::Result* result = cache_.Insert("file", i % 3, "");
-                EXPECT_TRUE(static_cast<HRCache*>(result)->status_ == kCacheOk);
+                Cache::Result* result = cache_->Insert("file", i % 3, "");
+                EXPECT_TRUE(static_cast<HrResult*>(result)->status_ == kCacheOk);
                 delete result;
             }
         }
     }
 
 protected:
-    toft::scoped_ptr<HRCache> cache_;
+    toft::scoped_ptr<Cache> cache_;
 };
 
 TEST_F(HRCacheTest, General) {

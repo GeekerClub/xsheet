@@ -38,7 +38,7 @@ public:
     virtual Result* Erase(const toft::StringPiece& key, Handle handle) = 0;
 
 
-    virtual toft::StringPiece Lookup(const toft::StringPiece& key);
+    virtual toft::StringPiece Lookup(const std::string& file_path, int64_t offset);
     virtual Result* Insert(const std::string& file_path, int64_t offset,
                            const toft::StringPiece& value);
     virtual Result* Erase(const std::string& file_path, int64_t offset, Handle handle);

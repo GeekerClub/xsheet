@@ -9,7 +9,8 @@ cc_library(
         '//toft/base/string:string',
         '//toft/system/threading:threading',
         '//toft/system/timer:timer',
-        '//thirdparty/glog:glog'
+        '//thirdparty/glog:glog',
+        '//toft/base:class_registry'
     ],
      link_all_symbols=True
 )
