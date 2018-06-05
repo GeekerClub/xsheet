@@ -14,6 +14,10 @@ Cache::Cache(const std::string& name, const CacheOptions& options)
     : name_(name), options_(options), cur_load_(0) {}
 
 
+toft::StringPiece Cache::Lookup(const std::string& file_path, int64_t offset) {
+    return Lookup(file_path + "/" + toft::NumberToString(offset));
+}
+
 Cache::Result* Cache::Insert(const std::string& file_path, int64_t offset,
                       const toft::StringPiece& value) {
     return Insert(file_path + "/" + toft::NumberToString(offset), value);

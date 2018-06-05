@@ -33,11 +33,12 @@ public:
     virtual ~Cache() {}
 
     virtual toft::StringPiece Lookup(const toft::StringPiece& key) = 0;
-
     virtual Result* Insert(const toft::StringPiece& key,
                            const toft::StringPiece& value) = 0;
     virtual Result* Erase(const toft::StringPiece& key, Handle handle) = 0;
 
+
+    virtual toft::StringPiece Lookup(const toft::StringPiece& key);
     virtual Result* Insert(const std::string& file_path, int64_t offset,
                            const toft::StringPiece& value);
     virtual Result* Erase(const std::string& file_path, int64_t offset, Handle handle);

@@ -28,6 +28,8 @@ toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
     std::map<toft::StringPiece, uint32_t>::iterator it = cache_index_.find(key);
     if (it == cache_index_.end()) {
         return "";
+    } else {
+        cache_[it->second]->hit_count_++;
     }
     return cache_[it->second]->payload_;
 }
