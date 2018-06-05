@@ -21,6 +21,12 @@ HRCache::~HRCache() {
     ReleaseCacheNode(0, cache_.size());
 }
 
+void HRCache::PrintStat() {
+    for (uint32_t i = 0; i < cache_.size(); ++i) {
+        LOG(INFO) << "[" << cache_[i]->key_.as_string() << ", "
+            << cache_[i]->hit_count_ << "]";
+    }
+}
 
 toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
     toft::MutexLocker lock(&cache_mutex_);

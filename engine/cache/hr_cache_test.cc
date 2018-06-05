@@ -18,7 +18,9 @@ const std::string cache_name = "test_cache";
 
 class HRCacheTest : public ::testing::Test {
 public:
-    HRCacheTest() {}
+    HRCacheTest() {
+        SetupCache(cache_name);
+    }
     ~HRCacheTest() {}
 
     void SetupCache(const std::string& cache_name) {
@@ -54,7 +56,9 @@ protected:
 };
 
 TEST_F(HRCacheTest, General) {
-
+    CreateData(10);
+    HitData(7);
+    cache_->PrintStat();
 }
 
 } // namespace xsheet

@@ -43,6 +43,8 @@ public:
                            const toft::StringPiece& value);
     virtual Result* Erase(const std::string& file_path, int64_t offset, Handle handle);
 
+    virtual void PrintStat() = 0;
+
 public:
     static Cache* Open(const std::string& name, const CacheOptions& options);
     static bool Exists(const std::string& name);

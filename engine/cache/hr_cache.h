@@ -39,6 +39,8 @@ public:
                            const toft::StringPiece& value);
     virtual Result* Erase(const toft::StringPiece& key, Handle handle);
 
+    virtual void PrintStat();
+
 private:
     void EraseElement(uint64_t timer_id);
     void EnableEraseTimer(int32_t expand_factor);
@@ -65,6 +67,8 @@ private:
 
     uint64_t erase_timer_id_;
     toft::TimerManager* timer_manager_;
+
+    uint64_t hit_counter_;
 };
 
 class HRCacheSystem : public CacheSystem {
