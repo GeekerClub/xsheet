@@ -39,7 +39,7 @@ CacheSystem* Cache::GetCacheSystemByName(const std::string& db_path, std::string
                 return cs;
         }
     }
-    return TOFT_GET_CACHE_SYSTEM("default");
+    return TOFT_GET_CACHE_SYSTEM("hr");
 }
 
 Cache* Cache::Open(const std::string& db_path, const CacheOptions& options) {

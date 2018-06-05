@@ -42,16 +42,17 @@ toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
 
 Cache::Result* HRCache::Insert(const toft::StringPiece& key,
                         const toft::StringPiece& value) {
+    LOG(INFO) << "insert: " << key.as_string();
     toft::MutexLocker lock(&cache_mutex_);
-    if (key.size() + value.size() + cur_load_ > options_.capacity_limit_) {
-        LOG(ERROR) << "cache over load, status: " << StatusCode_Name(kCacheOverLoad);
-        return new HrResult(kCacheOverLoad, "cache over load");
-    }
-
     std::map<toft::StringPiece, uint32_t>::iterator it = cache_index_.find(key);
     if (it != cache_index_.end()) {
         cache_[it->second]->hit_count_++;
         return new HrResult(kCacheOk, "");
+    }
+
+    if (key.size() + value.size() + cur_load_ > options_.capacity_limit_) {
+        LOG(ERROR) << "cache over load, status: " << StatusCode_Name(kCacheOverLoad);
+        return new HrResult(kCacheOverLoad, "cache over load");
     }
 
     CacheNode* node = new CacheNode;
@@ -60,6 +61,7 @@ Cache::Result* HRCache::Insert(const toft::StringPiece& key,
     node->payload_ = value;
     cache_.push_back(node);
     cache_index_[key] = cache_.size() - 1;
+
 
     return new HrResult(kCacheOk, "");
 }
