@@ -29,7 +29,8 @@ struct HrResult : public Cache::Result {
 
 class HRCache : public Cache {
 public:
-    HRCache(const std::string& name, const CacheOptions& options);
+    HRCache(const std::string& name, const CacheOptions& options,
+            toft::TimerManager* timer_manager);
     virtual ~HRCache();
 
 
@@ -43,7 +44,7 @@ public:
 
 private:
     void EraseElement(uint64_t timer_id);
-    void EnableEraseTimer(int32_t expand_factor);
+    void EnableEraseTimer(int32_t expand_factor = 1);
     void DisableEraseTimer();
 
     bool ReleaseCacheNode(uint32_t start, uint32_t end);
@@ -51,6 +52,7 @@ private:
 private:
     struct CacheNode {
         toft::StringPiece key_;
+        std::string key_str_;
         int64_t hit_count_;
         toft::StringPiece payload_;
 
@@ -61,7 +63,7 @@ private:
         CacheNode() : hit_count_(0) {}
     };
 
-    std::map<toft::StringPiece, uint32_t> cache_index_;
+    std::map<std::string, uint32_t> cache_index_;
     std::vector<CacheNode*> cache_;
     toft::Mutex cache_mutex_;
 

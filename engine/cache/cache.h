@@ -32,18 +32,17 @@ public:
     Cache(const std::string& name, const CacheOptions& options);
     virtual ~Cache() {}
 
+    virtual void PrintStat() = 0;
+
     virtual toft::StringPiece Lookup(const toft::StringPiece& key) = 0;
     virtual Result* Insert(const toft::StringPiece& key,
                            const toft::StringPiece& value) = 0;
     virtual Result* Erase(const toft::StringPiece& key, Handle handle) = 0;
 
-
     virtual toft::StringPiece Lookup(const std::string& file_path, int64_t offset);
     virtual Result* Insert(const std::string& file_path, int64_t offset,
                            const toft::StringPiece& value);
     virtual Result* Erase(const std::string& file_path, int64_t offset, Handle handle);
-
-    virtual void PrintStat() = 0;
 
 public:
     static Cache* Open(const std::string& name, const CacheOptions& options);

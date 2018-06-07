@@ -13,17 +13,22 @@
 
 namespace xsheet {
 
-HRCache::HRCache(const std::string& name, const CacheOptions& options)
-    : erase_timer_id_(kInvalidTimerId), Cache(name, options) {}
+HRCache::HRCache(const std::string& name, const CacheOptions& options,
+                 toft::TimerManager* timer_manager)
+    : erase_timer_id_(kInvalidTimerId), timer_manager_(timer_manager),
+      Cache(name, options) {
+    EnableEraseTimer();
+}
 
 HRCache::~HRCache() {
+    DisableEraseTimer();
     toft::MutexLocker lock(&cache_mutex_);
     ReleaseCacheNode(0, cache_.size());
 }
 
 void HRCache::PrintStat() {
     for (uint32_t i = 0; i < cache_.size(); ++i) {
-        LOG(INFO) << "[" << cache_[i]->key_.as_string() << ", "
+        LOG(INFO) << "[" << cache_[i]->key_str_ << ", "
             << cache_[i]->hit_count_ << "]";
     }
 }
@@ -31,7 +36,7 @@ void HRCache::PrintStat() {
 toft::StringPiece HRCache::Lookup(const toft::StringPiece& key) {
     toft::MutexLocker lock(&cache_mutex_);
 
-    std::map<toft::StringPiece, uint32_t>::iterator it = cache_index_.find(key);
+    std::map<std::string, uint32_t>::iterator it = cache_index_.find(key.as_string());
     if (it == cache_index_.end()) {
         return "";
     } else {
@@ -44,7 +49,7 @@ Cache::Result* HRCache::Insert(const toft::StringPiece& key,
                         const toft::StringPiece& value) {
     LOG(INFO) << "insert: " << key.as_string();
     toft::MutexLocker lock(&cache_mutex_);
-    std::map<toft::StringPiece, uint32_t>::iterator it = cache_index_.find(key);
+    std::map<std::string, uint32_t>::iterator it = cache_index_.find(key.as_string());
     if (it != cache_index_.end()) {
         cache_[it->second]->hit_count_++;
         return new HrResult(kCacheOk, "");
@@ -56,11 +61,12 @@ Cache::Result* HRCache::Insert(const toft::StringPiece& key,
     }
 
     CacheNode* node = new CacheNode;
-    node->key_ = key;
+    node->key_ = key.as_string();
+    node->key_str_ = key.as_string();
     node->hit_count_ = 1;
-    node->payload_ = value;
+    node->payload_ = value.as_string();
     cache_.push_back(node);
-    cache_index_[key] = cache_.size() - 1;
+    cache_index_[key.as_string()] = cache_.size() - 1;
 
 
     return new HrResult(kCacheOk, "");
@@ -69,7 +75,7 @@ Cache::Result* HRCache::Insert(const toft::StringPiece& key,
 Cache::Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
     toft::MutexLocker lock(&cache_mutex_);
 
-    std::map<toft::StringPiece, uint32_t>::iterator it = cache_index_.find(key);
+    std::map<std::string, uint32_t>::iterator it = cache_index_.find(key.as_string());
     if (it == cache_index_.end()) {
         return new HrResult(kCacheOk, "");
     }
@@ -92,7 +98,7 @@ void HRCache::EraseElement(uint64_t timer_id) {
     cache_index_.clear();
     for (uint32_t i = 0; i < cache_.size(); ++i) {
         CacheNode* node = cache_[i];
-        cache_index_[node->key_] = i;
+        cache_index_[node->key_.as_string()] = i;
     }
 }
 
@@ -146,7 +152,7 @@ HRCache* HRCacheSystem::Open(const std::string& cache_path, const CacheOptions& 
         LOG(WARNING) << "cache existed: " << cache_path;
         return it->second.second;
     }
-    HRCache* cache = new HRCache(cache_path, options);
+    HRCache* cache = new HRCache(cache_path, options, &timer_manager_);
     CacheNode node(options, cache);
     cache_list_[cache_path] = node;
     return cache;
