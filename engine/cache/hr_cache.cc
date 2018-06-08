@@ -143,7 +143,16 @@ TOFT_REGISTER_CACHE_SYSTEM("hr", HRCacheSystem);
 
 HRCacheSystem::HRCacheSystem() {}
 
-HRCacheSystem::~HRCacheSystem() {}
+HRCacheSystem::~HRCacheSystem() {
+    toft::MutexLocker lock(&list_mutex_);
+    std::map<std::string, CacheNode>::iterator it = cache_list_.begin();
+    for (; it != cache_list_.end(); ++it) {
+        if (it->second.second) {
+            delete it->second.second;
+        }
+    }
+
+}
 
 HRCache* HRCacheSystem::Open(const std::string& cache_path, const CacheOptions& options) {
     toft::MutexLocker lock(&list_mutex_);
