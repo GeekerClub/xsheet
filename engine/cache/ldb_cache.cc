@@ -9,7 +9,8 @@ namespace leveldb {
 
 
 
-PredictCache::PredictCache() {}
+PredictCache::PredictCache(xsheet::HRCache* hr_cache)
+    : hr_cache_(hr_cache) {}
 
 PredictCache::~PredictCache() {}
 

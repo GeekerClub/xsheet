@@ -17,7 +17,7 @@ struct PCHandle {
 
 class PredictCache : public Cache {
 public:
-    PredictCache();
+    PredictCache(xsheet::HRCache* hr_cache);
     virtual ~PredictCache();
 
     virtual Handle* Insert(const Slice& key, void* value, size_t charge,
@@ -29,7 +29,7 @@ public:
     virtual uint64_t NewId();
 
 private:
-    toft::scoped_ptr<xsheet::HRCache> hr_cache_;
+    xsheet::HRCache* hr_cache_;
 };
 
 } // namespace leveldb
