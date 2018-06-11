@@ -3,7 +3,7 @@
 //
 // Description:
 
-#include "engine/ldb_cache.h"
+#include "engine/cache/ldb_cache.h"
 
 
 namespace leveldb {
@@ -20,12 +20,12 @@ Cache::Handle* PredictCache::Insert(const Slice& key, void* value, size_t charge
     PCHandle* handle = new PCHandle;
 
     handle->key_sp_.set(key.data(), key.size());
-    handle->value_sp_.set(value, size);
+    handle->value_sp_.set(value, charge);
     handle->hr_result_ = hr_cache_->Insert(handle->key_sp_, handle->value_sp_);
     return handle;
 }
 
-Handle* PredictCache::Lookup(const Slice& key) {
+Cache::Handle* PredictCache::Lookup(const Slice& key) {
     PCHandle* handle = new PCHandle;
     handle->key_sp_.set(key.data(), key.size());
     toft::StringPiece sp = hr_cache_->Lookup(handle->key_sp_);
@@ -34,12 +34,15 @@ Handle* PredictCache::Lookup(const Slice& key) {
     return handle;
 }
 
-void PredictCache::Release(Handle* handle) {
-    delete handle->hr_result_;
+void PredictCache::Release(Cache::Handle* handle) {
+    PCHandle* pc_handle = reinterpret_cast<PCHandle*>(handle);
+    delete pc_handle->hr_result_;
+    delete handle;
 }
 
 void* PredictCache::Value(Handle* handle) {
-    return handle->value_sp_.data();
+    PCHandle* pc_handle = reinterpret_cast<PCHandle*>(handle);
+    return const_cast<char*>(pc_handle->value_sp_.data());
 }
 
 void PredictCache::Erase(const Slice& key) {

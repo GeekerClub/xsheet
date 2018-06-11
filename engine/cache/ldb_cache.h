@@ -10,14 +10,16 @@
 
 #include "toft/system/atomic/atomic.h"
 #include "toft/base/string/string_piece.h"
+#include "thirdparty/leveldb/slice.h"
+#include "thirdparty/leveldb/cache.h"
 
 namespace leveldb {
 
 
-struct PCHandle {
+struct PCHandle : public Cache::Handle {
     toft::StringPiece key_sp_;
     toft::StringPiece value_sp_;
-    xsheet::HrResult* hr_result_;
+    xsheet::Cache::Result* hr_result_;
 
     PCHandle() : hr_result_(NULL) {}
 };
@@ -27,9 +29,9 @@ public:
     PredictCache(xsheet::HRCache* hr_cache);
     virtual ~PredictCache();
 
-    virtual Handle* Insert(const Slice& key, void* value, size_t charge,
+    virtual Cache::Handle* Insert(const Slice& key, void* value, size_t charge,
                          void (*deleter)(const Slice& key, void* value));
-    virtual Handle* Lookup(const Slice& key);
+    virtual Cache::Handle* Lookup(const Slice& key);
     virtual void Release(Handle* handle);
     virtual void* Value(Handle* handle);
     virtual void Erase(const Slice& key);
