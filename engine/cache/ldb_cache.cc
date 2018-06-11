@@ -21,13 +21,17 @@ Cache::Handle* PredictCache::Insert(const Slice& key, void* value, size_t charge
 
     handle->key_sp_.set(key.data(), key.size());
     handle->value_sp_.set(value, size);
-    handle->hr_result_ = hr_cache_->Insert(handle->key_sp_,
-                                           handle->value_sp_);
+    handle->hr_result_ = hr_cache_->Insert(handle->key_sp_, handle->value_sp_);
     return handle;
 }
 
 Handle* PredictCache::Lookup(const Slice& key) {
+    PCHandle* handle = new PCHandle;
+    handle->key_sp_.set(key.data(), key.size());
+    toft::StringPiece sp = hr_cache_->Lookup(handle->key_sp_);
+    handle->value_sp_.set(sp.data(), sp.size());
 
+    return handle;
 }
 
 void PredictCache::Release(Handle* handle) {

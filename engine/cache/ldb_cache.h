@@ -18,6 +18,8 @@ struct PCHandle {
     toft::StringPiece key_sp_;
     toft::StringPiece value_sp_;
     xsheet::HrResult* hr_result_;
+
+    PCHandle() : hr_result_(NULL) {}
 };
 
 class PredictCache : public Cache {
