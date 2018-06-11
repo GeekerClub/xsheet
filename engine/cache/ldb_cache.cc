@@ -5,21 +5,28 @@
 
 #include "engine/ldb_cache.h"
 
+
 namespace leveldb {
 
 
 
 PredictCache::PredictCache(xsheet::HRCache* hr_cache)
-    : hr_cache_(hr_cache) {}
+    : hr_cache_(hr_cache), cache_id_(0) {}
 
 PredictCache::~PredictCache() {}
 
 Cache::Handle* PredictCache::Insert(const Slice& key, void* value, size_t charge,
                      void (*deleter)(const Slice& key, void* value)) {
+    PCHandle* handle = new PCHandle;
 
+    handle->key_sp_.set(key.data(), key.size());
+    handle->value_sp_.set(value, size);
+    handle->hr_result_ = hr_cache_->Insert(handle->key_sp_,
+                                           handle->value_sp_);
+    return handle;
 }
 
-Handle* PredictCach::eLookup(const Slice& key) {
+Handle* PredictCache::Lookup(const Slice& key) {
 
 }
 
@@ -32,11 +39,12 @@ void* PredictCache::Value(Handle* handle) {
 }
 
 void PredictCache::Erase(const Slice& key) {
-
+    toft::StringPiece key_sp(key.data(), key.size());
+    hr_cache_->Erase(key_sp, NULL);
 }
 
 uint64_t PredictCache::NewId() {
-
+    return cache_id_++;
 }
 
 } // namespace leveldb

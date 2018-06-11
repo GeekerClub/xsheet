@@ -8,11 +8,16 @@
 
 #include "engine/cache/hr_cache.h"
 
+#include "toft/system/atomic/atomic.h"
+#include "toft/base/string/string_piece.h"
+
 namespace leveldb {
 
 
 struct PCHandle {
-
+    toft::StringPiece key_sp_;
+    toft::StringPiece value_sp_;
+    xsheet::HrResult* hr_result_;
 };
 
 class PredictCache : public Cache {
@@ -30,6 +35,7 @@ public:
 
 private:
     xsheet::HRCache* hr_cache_;
+    toft::Atomic<uint64_t> cache_id_;
 };
 
 } // namespace leveldb
