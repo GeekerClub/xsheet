@@ -35,11 +35,11 @@ Handle* PredictCache::Lookup(const Slice& key) {
 }
 
 void PredictCache::Release(Handle* handle) {
-
+    delete handle->hr_result_;
 }
 
 void* PredictCache::Value(Handle* handle) {
-
+    return handle->value_sp_.data();
 }
 
 void PredictCache::Erase(const Slice& key) {
