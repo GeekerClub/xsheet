@@ -11,11 +11,12 @@
 #include "toft/base/string/string_piece.h"
 
 #include "proto/tablet.pb.h"
+#include "engine/cache/cache.h"
+
 
 namespace xsheet {
 
 struct BaseOptions {
-
 };
 
 struct ReadOptions {

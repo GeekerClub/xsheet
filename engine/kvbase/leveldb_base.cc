@@ -11,8 +11,10 @@
 #include "thirdparty/leveldb/write_batch.h"
 
 #include "engine/kvbase/kv_base.h"
+#include "engine/cache/hr_cache.h"
 
 DECLARE_string(engine_leveldb_env_type);
+DECLARE_bool(engine_cache_activated);
 
 namespace xsheet {
 

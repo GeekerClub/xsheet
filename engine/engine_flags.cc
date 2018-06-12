@@ -17,6 +17,6 @@ DEFINE_int32(engine_writer_sync_interval, 100, "the interval (in ms) to sync wri
 DEFINE_int32(engine_writer_sync_size_threshold, 1024, "force sync per X KB");
 DEFINE_int32(xsheet_asyncwriter_batch_size, 1024, "write batch to leveldb per X KB");
 
-
+DEFINE_bool(engine_cache_activated, true, "activate the predict cache");
 
 

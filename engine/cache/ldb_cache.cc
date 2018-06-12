@@ -54,4 +54,5 @@ uint64_t PredictCache::NewId() {
     return cache_id_++;
 }
 
+
 } // namespace leveldb
