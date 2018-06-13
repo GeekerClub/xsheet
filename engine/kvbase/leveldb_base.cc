@@ -12,6 +12,7 @@
 
 #include "engine/kvbase/kv_base.h"
 #include "engine/cache/hr_cache.h"
+#include "engine/cache/ldb_cache.h"
 
 DECLARE_string(engine_leveldb_env_type);
 DECLARE_bool(engine_cache_activated);
@@ -149,10 +150,14 @@ void LevelBase::SetupBatchUpdates(WriteBatch* updates, leveldb::WriteBatch* ldb_
 
 
 LevelBaseSystem::LevelBaseSystem()
-    : ldb_env_(NULL) {}
+    : ldb_env_(NULL), ldb_cache_(NULL) {}
 
 
-LevelBaseSystem::~LevelBaseSystem() {}
+LevelBaseSystem::~LevelBaseSystem() {
+    delete ldb_cache_;
+    delete ldb_env_;
+
+}
 
 LevelBase* LevelBaseSystem::Open(const std::string& db_path, const BaseOptions& base_options) {
     db_path_ = db_path;
@@ -192,6 +197,24 @@ void LevelBaseSystem::SetupOptions(const BaseOptions& base_options, leveldb::Opt
     }
     CHECK(ldb_env_) << ", leveldb env pointer should not be null";
     ldb_options->env = ldb_env_;
+
+    SetupCache(base_options, ldb_options);
+}
+
+void LevelBaseSystem::SetupCache(const BaseOptions& base_options, leveldb::Options* ldb_options) {
+    if (!FLAGS_engine_cache_activated) {
+        return;
+    }
+
+    if (!ldb_cache_) {
+        HRCache* hr_cache = reinterpret_cast<HRCache*>(base_options.base_cache_);
+        ldb_options->block_cache = ldb_cache_ =
+            new leveldb::PredictCache(hr_cache);
+    } else {
+        ldb_options->block_cache = ldb_cache_;
+    }
+
+    LOG(INFO) << "activate specific cache";
 }
 
 const char* LevelBaseSystem::Level = "leveldb";

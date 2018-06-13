@@ -11,6 +11,7 @@
 #include "thirdparty/leveldb/env.h"
 #include "thirdparty/leveldb/iterator.h"
 #include "thirdparty/leveldb/options.h"
+#include "thirdparty/leveldb/cache.h"
 #include "toft/base/string/string_piece.h"
 #include "toft/base/uncopyable.h"
 
@@ -87,11 +88,13 @@ public:
 
 private:
     void SetupOptions(const BaseOptions& base_options, leveldb::Options* ldb_options);
+    void SetupCache(const BaseOptions& base_options, leveldb::Options* ldb_options);
 
 private:
     std::string db_path_;
     BaseOptions base_options_;
     leveldb::Env* ldb_env_;
+    leveldb::Cache* ldb_cache_;
 };
 
 

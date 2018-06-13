@@ -17,6 +17,7 @@
 namespace xsheet {
 
 struct BaseOptions {
+    Cache* base_cache_;
 };
 
 struct ReadOptions {
