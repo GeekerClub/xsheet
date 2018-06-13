@@ -5,6 +5,8 @@ cc_library(
         'leveldb_base.cc'
     ],
     deps = [
+        '//engine/cache:cache',
+        '//engine/cache:ldb_cache',
         '//engine:engine_flags',
         '//proto:status_code_proto',
         '//proto:tablet_proto',
