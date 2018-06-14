@@ -16,7 +16,7 @@ PredictCache::PredictCache(xsheet::HRCache* hr_cache)
 PredictCache::~PredictCache() {}
 
 Cache::Handle* PredictCache::Insert(const Slice& key, void* value, size_t charge,
-                     void (*deleter)(const Slice& key, void* value)) {
+                                    void (*deleter)(const Slice& key, void* value)) {
     PCHandle* handle = new PCHandle;
 
     handle->key_sp_.set(key.data(), key.size());

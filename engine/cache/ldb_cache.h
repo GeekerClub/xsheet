@@ -29,8 +29,9 @@ public:
     PredictCache(xsheet::HRCache* hr_cache);
     virtual ~PredictCache();
 
-    virtual Cache::Handle* Insert(const Slice& key, void* value, size_t charge,
-                         void (*deleter)(const Slice& key, void* value));
+    virtual Cache::Handle* Insert(
+        const Slice& key, void* value, size_t charge,
+        void (*deleter)(const Slice& key, void* value));
     virtual Cache::Handle* Lookup(const Slice& key);
     virtual void Release(Handle* handle);
     virtual void* Value(Handle* handle);
