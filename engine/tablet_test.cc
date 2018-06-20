@@ -66,7 +66,7 @@ TEST_F(TabletTest, Sample) {
     EXPECT_EQ(kBaseOk, tablet_->Put(row_key, family, qualifier, value));
 
     std::string get_value;
-    EXPECT_EQ(kTabletOk, tablet_->Get(row_key, family, qualifier, &get_value));
+    EXPECT_EQ(kBaseOk, tablet_->Get(row_key, family, qualifier, &get_value));
     EXPECT_EQ(value, get_value);
 }
 
