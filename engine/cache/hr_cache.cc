@@ -84,8 +84,11 @@ Cache::Result* HRCache::Erase(const toft::StringPiece& key, Handle handle) {
 }
 
 void HRCache::EraseElement(uint64_t timer_id) {
+    LOG(INFO) << "EraseElement() timer is activated";
     toft::MutexLocker lock(&cache_mutex_);
     CHECK_EQ(timer_id, erase_timer_id_);
+
+    PrintStat();
 
     std::sort(cache_.begin(), cache_.end());
     if (cache_.size() <= options_.erase_limit_) {
