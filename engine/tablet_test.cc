@@ -70,4 +70,8 @@ TEST_F(TabletTest, Sample) {
     EXPECT_EQ(value, get_value);
 }
 
+
+TEST_F(TabletTest, CacheEnabled) {
+
+}
 } // namespace xsheet
