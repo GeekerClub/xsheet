@@ -13,6 +13,8 @@
 
 #include "engine/tablet_schema.pb.h"
 
+DECLARE_bool(engine_cache_activated);
+
 namespace xsheet {
 
 const std::string workspace_dir = "./testdata/";
@@ -71,7 +73,33 @@ TEST_F(TabletTest, Sample) {
 }
 
 
-TEST_F(TabletTest, CacheEnabled) {
+TEST_F(TabletTest, CacheDisabled) {
+    FLAGS_engine_cache_activated = false;
 
+    std::string row_key = "row_key_test";
+    std::string family = "cf2";
+    std::string qualifier = "qualifier_test";
+    std::string value = "value_test";
+
+    EXPECT_EQ(kBaseOk, tablet_->Put(row_key, family, qualifier, value));
+
+    std::string get_value;
+    EXPECT_EQ(kBaseOk, tablet_->Get(row_key, family, qualifier, &get_value));
+    EXPECT_EQ(value, get_value);
+}
+
+TEST_F(TabletTest, CacheEnabled) {
+    FLAGS_engine_cache_activated = false;
+
+    std::string row_key = "row_key_test";
+    std::string family = "cf2";
+    std::string qualifier = "qualifier_test";
+    std::string value = "value_test";
+
+    EXPECT_EQ(kBaseOk, tablet_->Put(row_key, family, qualifier, value));
+
+    std::string get_value;
+    EXPECT_EQ(kBaseOk, tablet_->Get(row_key, family, qualifier, &get_value));
+    EXPECT_EQ(value, get_value);
 }
 } // namespace xsheet
