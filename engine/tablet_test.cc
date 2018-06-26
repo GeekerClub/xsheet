@@ -102,4 +102,10 @@ TEST_F(TabletTest, CacheEnabled) {
     EXPECT_EQ(kBaseOk, tablet_->Get(row_key, family, qualifier, &get_value));
     EXPECT_EQ(value, get_value);
 }
+
+TEST_F(TabletTest, CacheMiss) {
+}
+
+TEST_F(TabletTest, CacheHit) {
+}
 } // namespace xsheet
