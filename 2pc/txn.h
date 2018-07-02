@@ -7,6 +7,11 @@
 #define XSHEET_TXN_TXN_H
 
 class Txn {
+public:
+    Txn();
+    ~Txn();
+
+private:
 
 };
 
