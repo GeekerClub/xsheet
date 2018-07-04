@@ -11,6 +11,11 @@ public:
     Txn();
     ~Txn();
 
+    void StartTransaction();
+    void PreCommit();
+    void Commit();
+    void Rollback();
+
 private:
 
 };
