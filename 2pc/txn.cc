@@ -8,4 +8,25 @@
 
 namespace xsheet {
 
+Txn::Txn() {}
+Txn::~Txn() {}
+
+
+void Txn::StartTransaction() {
+
+}
+
+void Txn::PreCommit() {
+
+}
+
+void Txn::Commit() {
+
+}
+
+void Txn::Rollback() {
+
+}
+
+
 } // namespace xsheet
