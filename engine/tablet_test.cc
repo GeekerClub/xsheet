@@ -103,8 +103,4 @@ TEST_F(TabletTest, CacheEnabled) {
     EXPECT_EQ(value, get_value);
 }
 
-TEST_F(TabletTest, CacheHit) {
-
-}
-
 } // namespace xsheet
