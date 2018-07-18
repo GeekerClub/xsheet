@@ -61,4 +61,8 @@ TEST_F(HRCacheTest, General) {
     cache_->PrintStat();
 }
 
+TEST_F(HRCacheTest, Hit) {
+
+}
+
 } // namespace xsheet
