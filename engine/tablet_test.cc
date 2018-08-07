@@ -88,19 +88,19 @@ TEST_F(TabletTest, Sample) {
 //     EXPECT_EQ(value, get_value);
 // }
 
-TEST_F(TabletTest, CacheEnabled) {
-    FLAGS_engine_cache_activated = false;
+// TEST_F(TabletTest, CacheEnabled) {
+//     FLAGS_engine_cache_activated = false;
 
-    std::string row_key = "row_key_test";
-    std::string family = "cf2";
-    std::string qualifier = "qualifier_test";
-    std::string value = "value_test";
+//     std::string row_key = "row_key_test";
+//     std::string family = "cf2";
+//     std::string qualifier = "qualifier_test";
+//     std::string value = "value_test";
 
-    EXPECT_EQ(kBaseOk, tablet_->Put(row_key, family, qualifier, value));
+//     EXPECT_EQ(kBaseOk, tablet_->Put(row_key, family, qualifier, value));
 
-    std::string get_value;
-    EXPECT_EQ(kBaseOk, tablet_->Get(row_key, family, qualifier, &get_value));
-    EXPECT_EQ(value, get_value);
-}
+//     std::string get_value;
+//     EXPECT_EQ(kBaseOk, tablet_->Get(row_key, family, qualifier, &get_value));
+//     EXPECT_EQ(value, get_value);
+// }
 
 } // namespace xsheet
